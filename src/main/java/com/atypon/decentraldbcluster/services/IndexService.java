@@ -41,7 +41,9 @@ public class IndexService {
         return null;
     }
 
-    public void createIndex(List<JsonNode> documents, String collectionPath, String field) throws Exception {
+    public void createIndex(String collectionPath, String field) throws Exception {
+
+        List<JsonNode> documents = documentService.readDocumentsByCollectionPath(collectionPath);
 
         String indexPath = constructIndexPath(collectionPath, field);
 

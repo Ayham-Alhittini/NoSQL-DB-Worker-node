@@ -15,14 +15,12 @@ public class IndexController {
 
     private final UserDetails userDetails;
     private final IndexService indexService;
-    private final DocumentService documentService;
 
 
     @Autowired
-    public IndexController(UserDetails userDetails, IndexService indexService, DocumentService documentService) {
+    public IndexController(UserDetails userDetails, IndexService indexService) {
         this.userDetails = userDetails;
         this.indexService = indexService;
-        this.documentService = documentService;
     }
 
     @PostMapping("{database}/{collection}/createIndex/{field}")
@@ -31,9 +29,7 @@ public class IndexController {
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
 
-        var documents = documentService.readDocumentsByCollectionPath(collectionPath);
-
-        indexService.createIndex(documents, collectionPath, field);
+        indexService.createIndex(collectionPath, field);
     }
 
     @DeleteMapping("{database}/{collection}/deleteIndex/{field}")

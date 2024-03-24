@@ -1,6 +1,7 @@
 package com.atypon.decentraldbcluster.api.controller;
 
 import com.atypon.decentraldbcluster.services.FileStorageService;
+import com.atypon.decentraldbcluster.services.IndexService;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import com.atypon.decentraldbcluster.services.JsonSchemaValidator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -19,51 +21,62 @@ public class CollectionController {
 
     private final UserDetails userDetails;
     private final JsonSchemaValidator schemaValidator;
+    private final IndexService indexService;
 
     @Autowired
-    public CollectionController(UserDetails userDetails, JsonSchemaValidator schemaValidator) {
+    public CollectionController(UserDetails userDetails, JsonSchemaValidator schemaValidator, IndexService indexService) {
         this.userDetails = userDetails;
         this.schemaValidator = schemaValidator;
+        this.indexService = indexService;
     }
 
-    @PostMapping("{databaseName}/create/{collectionName}")
+    @PostMapping("{database}/create/{collection}")
     public void createCollection(HttpServletRequest request,
-                                              @PathVariable String databaseName ,
-                                              @PathVariable String collectionName,
-                                              @RequestBody JsonNode schema) throws IOException {
+                                              @PathVariable String database,
+                                              @PathVariable String collection,
+                                              @RequestBody JsonNode schema) throws Exception {
 
-        schemaValidator.validateSchema(schema);
+        schemaValidator.validateSchemaDataTypes(schema);
 
-        String userDirectory = userDetails.getUserId(request);
-        String collectionPath = userDirectory + "/" + databaseName + "/" + collectionName;
 
-        FileStorageService.createDirectory(collectionPath + "/documents");
-        FileStorageService.createDirectory(collectionPath + "/indexes");
+        String userDirectory = userDetails.getUserDirectory(request);
+        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
 
-        FileStorageService.saveFile(schema.toPrettyString(), collectionPath + "/schema.json");
+        FileStorageService.createDirectory( Paths.get(collectionPath, "documents").toString() );
+        FileStorageService.createDirectory( Paths.get(collectionPath, "indexes").toString() );
 
+        FileStorageService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
+
+        // Auto creation for _id field
+        indexService.createIndex(collectionPath, "_id");
     }
 
 
 
-    @DeleteMapping("{databaseName}/delete/{collectionName}")
+    @DeleteMapping("{database}/delete/{collection}")
     public void deleteCollection(HttpServletRequest request,
-                                              @PathVariable String databaseName ,
-                                              @PathVariable String collectionName) throws IOException {
+                                              @PathVariable String database,
+                                              @PathVariable String collection) throws IOException {
 
-        String userDirectory = userDetails.getUserId(request);
-        FileStorageService.deleteDirectory(userDirectory + "/" + databaseName + "/" + collectionName);
+        String userDirectory = userDetails.getUserDirectory(request);
+
+        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
+        FileStorageService.deleteDirectory(collectionPath);
 
     }
 
 
 
 
-    @GetMapping("{databaseName}/showCollections")
-    public ResponseEntity<List<String>> showCollections(HttpServletRequest request, @PathVariable String databaseName) {
+    @GetMapping("{database}/showCollections")
+    public ResponseEntity<List<String>> showCollections(HttpServletRequest request, @PathVariable String database) {
 
+        String rootDirectory = FileStorageService.getRootDirectory();
         String userDirectory = userDetails.getUserId(request);
-        List<String> dbs = FileStorageService.listAllDirectories(userDirectory + "/" + databaseName);
+
+        String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
+
+        List<String> dbs = FileStorageService.listAllDirectories(databasePath);
 
         return ResponseEntity.ok(dbs);
     }

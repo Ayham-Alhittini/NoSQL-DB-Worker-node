@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -23,24 +24,37 @@ public class DatabaseController {
         this.userDetails = userDetails;
     }
 
-    @PostMapping("/create/{databaseName}")
-    public void createDatabase(HttpServletRequest request, @PathVariable String databaseName) throws IOException {
+    @PostMapping("/create/{database}")
+    public void createDatabase(HttpServletRequest request, @PathVariable String database) throws IOException {
 
-        FileStorageService.createDirectory( userDetails.getUserId(request) + "/" + databaseName);
+        String rootDirectory = FileStorageService.getRootDirectory();
+        String userDirectory = userDetails.getUserDirectory(request);
+
+        String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
+        FileStorageService.createDirectory( databasePath);
 
     }
 
-    @DeleteMapping("/delete/{databaseName}")
-    public void deleteDatabase(HttpServletRequest request, @PathVariable String databaseName) throws IOException {
+    @DeleteMapping("/delete/{database}")
+    public void deleteDatabase(HttpServletRequest request, @PathVariable String database) throws IOException {
 
-        FileStorageService.deleteDirectory( userDetails.getUserId(request) + "/" + databaseName);
+        String rootDirectory = FileStorageService.getRootDirectory();
+        String userDirectory = userDetails.getUserDirectory(request);
+
+        String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
+        FileStorageService.deleteDirectory( databasePath);
 
     }
 
     @GetMapping("/showDbs")
     public ResponseEntity<List<String>> showDbs(HttpServletRequest request) {
 
-        List<String> dbs = FileStorageService.listAllDirectories(userDetails.getUserId(request));
+        String rootDirectory = FileStorageService.getRootDirectory();
+        String userDirectory = userDetails.getUserDirectory(request);
+
+        String userPath = Paths.get(rootDirectory, userDirectory).toString();
+
+        List<String> dbs = FileStorageService.listAllDirectories(userPath);
 
         return ResponseEntity.ok(dbs);
 

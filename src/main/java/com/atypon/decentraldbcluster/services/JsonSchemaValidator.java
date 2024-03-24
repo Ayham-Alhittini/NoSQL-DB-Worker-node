@@ -48,7 +48,7 @@ public class JsonSchemaValidator {
         }
     }
 
-    public void validateSchema(JsonNode schema) {
+    public void validateSchemaDataTypes(JsonNode schema) {
         validateSchemaWithPath(schema, "schema");
     }
 
