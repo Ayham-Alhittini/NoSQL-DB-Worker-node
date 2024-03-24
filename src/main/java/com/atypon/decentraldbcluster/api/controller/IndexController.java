@@ -31,7 +31,7 @@ public class IndexController {
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
 
-        var documents = documentService.readAllDocumentsInCollection(collectionPath, null);
+        var documents = documentService.readDocumentsByCollectionPath(collectionPath);
 
         indexService.createIndex(documents, collectionPath, field);
     }

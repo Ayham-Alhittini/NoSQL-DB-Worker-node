@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -18,6 +21,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 public class IndexService {
 
     private final DocumentService documentService;
+
 
     @Autowired
     public IndexService(DocumentService documentService) {
@@ -110,7 +114,7 @@ public class IndexService {
     }
 
 
-    private List<String> getIndexedFields(JsonNode jsonNode, String collectionPath) {
+    public List<String> getIndexedFields(JsonNode jsonNode, String collectionPath) {
         List<String> indexedFields = new ArrayList<>();
 
         jsonNode.fields().forEachRemaining(field -> {
@@ -122,27 +126,6 @@ public class IndexService {
 
         return indexedFields;
     }
-
-
-    public String getMostSelectiveIndexFiled(JsonNode filter, String collectionPath) throws Exception {
-        List<String> indexedFields = getIndexedFields(filter, collectionPath);
-        int minSelectiveSize = Integer.MAX_VALUE;
-        String mostSelectiveIndex = null;
-
-        for (String field: indexedFields) {
-            var index = deserializeIndex( constructIndexPath(collectionPath, field) );
-
-            int indexSelectiveSize = index.get( new IndexKey(filter.get(field)) ).size();
-
-            if (indexSelectiveSize < minSelectiveSize) {
-                minSelectiveSize = indexSelectiveSize;
-                mostSelectiveIndex = field;
-            }
-        }
-
-        return mostSelectiveIndex;
-    }
-
 
     public void insertToAllIndexes(JsonNode requestBody, String pointer) throws Exception {
         String collectionPath = getCollectionPathFromPointer(pointer);
@@ -187,6 +170,25 @@ public class IndexService {
     public String pointerPathToIndexPath(String pointer, String field) {
         String collectionPath = getCollectionPathFromPointer(pointer);
         return Paths.get(collectionPath, "indexes", field + ".ser").toString();
+    }
+
+    public String getMostSelectiveIndexFiled(JsonNode filter, String collectionPath) throws Exception {
+        List<String> indexedFields = getIndexedFields(filter, collectionPath);
+        int minSelectiveSize = Integer.MAX_VALUE;
+        String mostSelectiveIndex = null;
+
+        for (String field: indexedFields) {
+            var index = deserializeIndex( constructIndexPath(collectionPath, field) );
+
+            int indexSelectiveSize = index.get( new IndexKey(filter.get(field)) ).size();
+
+            if (indexSelectiveSize < minSelectiveSize) {
+                minSelectiveSize = indexSelectiveSize;
+                mostSelectiveIndex = field;
+            }
+        }
+
+        return mostSelectiveIndex;
     }
 
 }

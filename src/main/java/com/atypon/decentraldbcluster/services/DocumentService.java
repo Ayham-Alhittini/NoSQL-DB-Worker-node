@@ -12,10 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Service
@@ -45,7 +42,15 @@ public class DocumentService {
         throw new ResourceNotFoundException("Document not exists");
     }
 
-    public List<JsonNode> readAllDocumentsInCollection(String collectionPath, JsonNode filter) throws IOException {
+    public List<JsonNode> readDocumentsByDocumentsPathList(Set<String> documentsPath) throws IOException {
+        List<JsonNode> documents = new ArrayList<>();
+        for (var document: documentsPath) {
+            documents.add( readDocument(document) );
+        }
+        return documents;
+    }
+
+    public List<JsonNode> readDocumentsByCollectionPath(String collectionPath) throws IOException {
         List<JsonNode> documents = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
 
@@ -55,42 +60,14 @@ public class DocumentService {
                     try {
                         String jsonString = Files.readString(path);
                         JsonNode document = mapper.readTree(jsonString);
-
-                        boolean validDocument = true;
-                        if (filter != null) {
-
-                            validDocument = isValidDocument(filter, document, validDocument);
-                        }
-
-                        if (validDocument)
-                            documents.add(document);
-
+                        documents.add(document);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 }
             });
         }
         return documents;
-    }
-
-    private boolean isValidDocument(JsonNode filter, JsonNode document, boolean validDocument) {
-        var iterator = filter.fields();
-
-        while (iterator.hasNext()) {
-            var field = iterator.next();
-
-            if (document.get(field.getKey()) == null) {
-                validDocument = false;
-                break;
-            }
-
-            if (!document.get(field.getKey()).equals(field.getValue())) {
-                validDocument = false;
-                break;
-            }
-        }
-        return validDocument;
     }
 
     public ObjectId createAndAppendDocumentId(Map<String, Object> document) {

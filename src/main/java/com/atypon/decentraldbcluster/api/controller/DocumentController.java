@@ -87,7 +87,7 @@ public class DocumentController {
 
 
 
-    // Helper methods.
+    // Helper method
     private JsonNode readSchema(String collectionPath) throws IOException {
         String schemaPath = Paths.get(collectionPath, "schema.json").toString();
         return documentService.readDocument(schemaPath);
