@@ -12,8 +12,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @Service
 public class DocumentService {
@@ -25,14 +28,16 @@ public class DocumentService {
         this.mapper = mapper;
     }
 
-    public String constructDocumentPath(String userDirectory, String database, String collection, String documentId) {
-        return Paths.get(userDirectory, database, collection, "documents", documentId + ".json").toString();
+    public String constructDocumentPath(String collectionPath, String documentId) {
+        return Paths.get( collectionPath , "documents", documentId + ".json").toString();
     }
 
 
     public JsonNode readDocument(String documentPath) throws IOException {
 
-        Path filePath = Paths.get(FileStorageService.appendToBaseDirectory(documentPath));
+        Path filePath = Paths.get(documentPath);
+
+        String x = filePath.toString();
 
         if (Files.isRegularFile(filePath)) {
             String jsonString = Files.readString(filePath);
@@ -40,6 +45,54 @@ public class DocumentService {
         }
 
         throw new ResourceNotFoundException("Document not exists");
+    }
+
+    public List<JsonNode> readAllDocumentsInCollection(String collectionPath, JsonNode filter) throws IOException {
+        List<JsonNode> documents = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+
+        try (Stream<Path> paths = Files.list(Paths.get(collectionPath, "documents"))) {
+            paths.forEach(path -> {
+                if (Files.isRegularFile(path)) {
+                    try {
+                        String jsonString = Files.readString(path);
+                        JsonNode document = mapper.readTree(jsonString);
+
+                        boolean validDocument = true;
+                        if (filter != null) {
+
+                            validDocument = isValidDocument(filter, document, validDocument);
+                        }
+
+                        if (validDocument)
+                            documents.add(document);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+        return documents;
+    }
+
+    private boolean isValidDocument(JsonNode filter, JsonNode document, boolean validDocument) {
+        var iterator = filter.fields();
+
+        while (iterator.hasNext()) {
+            var field = iterator.next();
+
+            if (document.get(field.getKey()) == null) {
+                validDocument = false;
+                break;
+            }
+
+            if (!document.get(field.getKey()).equals(field.getValue())) {
+                validDocument = false;
+                break;
+            }
+        }
+        return validDocument;
     }
 
     public ObjectId createAndAppendDocumentId(Map<String, Object> document) {

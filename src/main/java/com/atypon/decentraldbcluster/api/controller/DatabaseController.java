@@ -24,23 +24,21 @@ public class DatabaseController {
     }
 
     @PostMapping("/create/{databaseName}")
-    public ResponseEntity<?> createDatabase(HttpServletRequest request, @PathVariable String databaseName) throws IOException {
+    public void createDatabase(HttpServletRequest request, @PathVariable String databaseName) throws IOException {
 
         FileStorageService.createDirectory( userDetails.getUserId(request) + "/" + databaseName);
 
-        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/delete/{databaseName}")
-    public ResponseEntity<?> deleteDatabase(HttpServletRequest request, @PathVariable String databaseName) throws IOException {
+    public void deleteDatabase(HttpServletRequest request, @PathVariable String databaseName) throws IOException {
 
         FileStorageService.deleteDirectory( userDetails.getUserId(request) + "/" + databaseName);
 
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/showDbs")
-    public ResponseEntity<?> showDbs(HttpServletRequest request) {
+    public ResponseEntity<List<String>> showDbs(HttpServletRequest request) {
 
         List<String> dbs = FileStorageService.listAllDirectories(userDetails.getUserId(request));
 

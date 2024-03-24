@@ -19,12 +19,16 @@ public class FileStorageService {
     private static final String baseDirectory = "./storage/";
 
 
-    public static String getBaseDirectory() {
+    public static String getRootDirectory() {
         return baseDirectory;
     }
 
+    public static String constructCollectionPath(String userDirectory, String database, String collection) {
+        return Paths.get(getRootDirectory(), userDirectory, database, collection).toString();
+    }
+
     public static void createDirectory(String directoryPath) throws IOException {
-        Path nodeStorageDir = Paths.get(appendToBaseDirectory(directoryPath));
+        Path nodeStorageDir = Paths.get(directoryPath);
 
         if (!Files.exists(nodeStorageDir)) {
             Files.createDirectories(nodeStorageDir);
@@ -32,7 +36,7 @@ public class FileStorageService {
     }
 
     public static void deleteDirectory(String directoryPath) throws IOException {
-        Path dir = Paths.get(appendToBaseDirectory(directoryPath));
+        Path dir = Paths.get(directoryPath);
 
         if (!Files.exists(dir))
             throw new IllegalArgumentException("Directory not exists");
@@ -50,7 +54,7 @@ public class FileStorageService {
     }
 
     public static void deleteFile(String filePath) throws IOException {
-        Path path = Paths.get(appendToBaseDirectory(filePath));
+        Path path = Paths.get(filePath);
 
         if (!Files.exists(path))
             throw new ResourceNotFoundException("File not exists");
@@ -72,7 +76,7 @@ public class FileStorageService {
 
         List<String> directoriesName = new ArrayList<>();
 
-        File directory = new File(appendToBaseDirectory(path));
+        File directory = new File(path);
 
         if (directory.isFile())
             throw new IllegalArgumentException("Expect directory");
@@ -89,14 +93,9 @@ public class FileStorageService {
     }
 
     public static void saveFile(String data, String path) throws IOException {
-        path = appendToBaseDirectory(path);
         try (FileWriter file = new FileWriter(path)) {
             file.write(data);
             file.flush();
         }
-    }
-
-    public static String appendToBaseDirectory(String path) {
-        return getBaseDirectory() + "/" + path;
     }
 }

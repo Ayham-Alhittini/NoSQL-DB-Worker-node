@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -34,14 +33,15 @@ public class DocumentController {
     }
 
     @PostMapping("{database}/{collection}/addDocument")
-    public ResponseEntity<?> addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody Map<String, Object> requestBody) throws IOException {
+    public void addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody Map<String, Object> requestBody) throws IOException {
 
         ObjectId objectId = documentService.createAndAppendDocumentId(requestBody);
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String documentPath = documentService.constructDocumentPath(userDirectory, database, collection, objectId.toHexString());
+        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
+        String documentPath = documentService.constructDocumentPath(collectionPath, objectId.toHexString());
 
-        JsonNode schema = readSchema(userDirectory, database, collection);
+        JsonNode schema = readSchema(collectionPath);
 
         JsonNode document = mapper.valueToTree(requestBody);
 
@@ -49,30 +49,30 @@ public class DocumentController {
 
         FileStorageService.saveFile(document.toPrettyString(), documentPath);
 
-        return ResponseEntity.ok().build();
     }
 
 
     @DeleteMapping("{database}/{collection}/deleteDocument/{documentId}")
-    public ResponseEntity<Object> deleteDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws IOException {
+    public void deleteDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws IOException {
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String documentPath = documentService.constructDocumentPath(userDirectory, database, collection, documentId);
+        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
+        String documentPath = documentService.constructDocumentPath(collectionPath, documentId);
 
         FileStorageService.deleteFile(documentPath);
 
-        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("{database}/{collection}/updateDocument/{documentId}")
-    public ResponseEntity<?> updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestBody JsonNode requestBody) throws IOException {
+    public JsonNode updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestBody JsonNode requestBody) throws IOException {
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String documentPath = documentService.constructDocumentPath(userDirectory, database, collection, documentId);
+        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
+        String documentPath = documentService.constructDocumentPath(collectionPath, documentId);
 
         JsonNode currentDocument = documentService.readDocument(documentPath);
 
-        JsonNode schema = readSchema(userDirectory, database, collection);
+        JsonNode schema = readSchema(collectionPath);
 
         schemaValidator.doesDocumentMatchSchema(requestBody, schema, false);
 
@@ -80,13 +80,13 @@ public class DocumentController {
 
         FileStorageService.saveFile(updatedDocument.toPrettyString(), documentPath);
 
-        return ResponseEntity.ok().build();
+        return updatedDocument;
     }
 
     // Helper methods.
 
-    private JsonNode readSchema(String userDirectory, String database, String collection) throws IOException {
-        String schemaPath = Paths.get(userDirectory, database, collection, "schema.json").toString();
+    private JsonNode readSchema(String collectionPath) throws IOException {
+        String schemaPath = Paths.get(collectionPath, "schema.json").toString();
         return documentService.readDocument(schemaPath);
     }
 

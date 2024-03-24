@@ -24,13 +24,7 @@ public class TestController {
     }
 
     @GetMapping
-    public void test(HttpServletRequest request) throws JsonProcessingException {
-        String json = """
-                {
-                    "field": true
-                }
-                """;
-        JsonNode node = mapper.readTree(json);
-        int x = 0;
+    public void test(HttpServletRequest request) {
+        //some stuff goes here
     }
 }

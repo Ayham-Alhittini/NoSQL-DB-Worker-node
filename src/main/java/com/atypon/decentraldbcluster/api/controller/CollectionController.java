@@ -27,7 +27,7 @@ public class CollectionController {
     }
 
     @PostMapping("{databaseName}/create/{collectionName}")
-    public ResponseEntity<?> createCollection(HttpServletRequest request,
+    public void createCollection(HttpServletRequest request,
                                               @PathVariable String databaseName ,
                                               @PathVariable String collectionName,
                                               @RequestBody JsonNode schema) throws IOException {
@@ -42,27 +42,25 @@ public class CollectionController {
 
         FileStorageService.saveFile(schema.toPrettyString(), collectionPath + "/schema.json");
 
-        return ResponseEntity.ok().build();
     }
 
 
 
     @DeleteMapping("{databaseName}/delete/{collectionName}")
-    public ResponseEntity<?> deleteCollection(HttpServletRequest request,
+    public void deleteCollection(HttpServletRequest request,
                                               @PathVariable String databaseName ,
                                               @PathVariable String collectionName) throws IOException {
 
         String userDirectory = userDetails.getUserId(request);
         FileStorageService.deleteDirectory(userDirectory + "/" + databaseName + "/" + collectionName);
 
-        return ResponseEntity.ok().build();
     }
 
 
 
 
     @GetMapping("{databaseName}/showCollections")
-    public ResponseEntity<?> showCollections(HttpServletRequest request, @PathVariable String databaseName) {
+    public ResponseEntity<List<String>> showCollections(HttpServletRequest request, @PathVariable String databaseName) {
 
         String userDirectory = userDetails.getUserId(request);
         List<String> dbs = FileStorageService.listAllDirectories(userDirectory + "/" + databaseName);
