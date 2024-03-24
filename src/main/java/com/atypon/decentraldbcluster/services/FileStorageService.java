@@ -62,11 +62,9 @@ public class FileStorageService {
         Files.delete(path);
     }
 
-
-
     public static void createBaseStorageDirectory() {
         try {
-            createDirectory("");
+            createDirectory( getRootDirectory() );
         } catch (IOException e) {
             System.out.println("Can't create base directory" + e.getMessage());
         }

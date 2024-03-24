@@ -16,13 +16,27 @@ import java.util.concurrent.ConcurrentSkipListSet;
 @Service
 public class QueryService {
 
-    private final ObjectMapper mapper;
     private final DocumentService documentService;
+    private final IndexService indexService;
+    private final ObjectMapper mapper;
 
     @Autowired
-    public QueryService(ObjectMapper mapper, DocumentService documentService) {
-        this.mapper = mapper;
+    public QueryService(DocumentService documentService, IndexService indexService, ObjectMapper mapper) {
         this.documentService = documentService;
+        this.indexService = indexService;
+        this.mapper = mapper;
+    }
+
+    public List<JsonNode> filterDocuments(List<JsonNode> documents, JsonNode filter) {
+
+        List<JsonNode> filteredDocuments = new ArrayList<>();
+
+        for (var document: documents) {
+            if (isDocumentMatch(filter, document))
+                filteredDocuments.add(document);
+        }
+
+        return filteredDocuments;
     }
 
     public JsonNode findDocumentById(ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index, String documentId) throws IOException {
@@ -35,39 +49,38 @@ public class QueryService {
         throw new ResourceNotFoundException("Document not exists");
     }
 
-    public List<JsonNode> filterDocuments(List<JsonNode> documents, JsonNode filter) {
 
-        List<JsonNode> filteredDocuments = new ArrayList<>();
+    public String getMostSelectiveIndexFiled(JsonNode filter, String collectionPath) throws Exception {
+        List<String> indexedFields = indexService.getIndexedFields(filter, collectionPath);
+        int minSelectiveSize = Integer.MAX_VALUE;
+        String mostSelectiveIndex = null;
 
-        for (var document: documents) {
-            boolean validDocument = true;
-            validDocument = isDocumentMatch(filter, document, validDocument);
+        for (String field: indexedFields) {
+            var index = indexService.deserializeIndex( indexService.constructIndexPath(collectionPath, field) );
 
-            if (validDocument)
-                filteredDocuments.add(document);
-        }
+            var pointers = indexService.getPointers(index, filter.get(field) );
 
-        return filteredDocuments;
-    }
+            if (pointers == null) continue;
 
-    private boolean isDocumentMatch(JsonNode filter, JsonNode document, boolean validDocument) {
-        var iterator = filter.fields();
-
-        while (iterator.hasNext()) {
-            var field = iterator.next();
-
-            if (document.get(field.getKey()) == null) {
-                validDocument = false;
-                break;
-            }
-
-            if (!document.get(field.getKey()).equals(field.getValue())) {
-                validDocument = false;
-                break;
+            if (pointers.size() < minSelectiveSize) {
+                minSelectiveSize = pointers.size();
+                mostSelectiveIndex = field;
             }
         }
-        return validDocument;
+        return mostSelectiveIndex;
     }
 
+
+    private boolean isDocumentMatch(JsonNode filter, JsonNode document) {
+        var fields = filter.fields();
+
+        while (fields.hasNext()) {
+            var field = fields.next();
+
+            if (document.get(field.getKey()) == null || !document.get(field.getKey()).equals(field.getValue()))
+                return false;
+        }
+        return true;
+    }
 
 }

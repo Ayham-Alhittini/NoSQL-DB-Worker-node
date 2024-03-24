@@ -43,7 +43,6 @@ public class JsonSchemaValidator {
                     }
                     return;
                 }
-
                 doesDocumentMatchSchemaWithPath(documentField, schema.get(field.getKey()), path + "." + field.getKey(), fieldsRequired);
             });
         }
@@ -73,6 +72,8 @@ public class JsonSchemaValidator {
             throw new IllegalArgumentException(path + ", invalid data type [" + fieldValue + "]");
         }
     }
+
+    //--------------------------------------------------------------------
 
     private boolean isMatch(AppDataType dataType, AppDataType schemaDataType) {
         return dataType == schemaDataType || (dataType == AppDataType.INTEGER && schemaDataType == AppDataType.DECIMAL);

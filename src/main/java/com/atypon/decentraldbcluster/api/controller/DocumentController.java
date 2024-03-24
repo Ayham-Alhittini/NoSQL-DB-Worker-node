@@ -8,8 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Map;
 
 @RestController
@@ -40,7 +38,7 @@ public class DocumentController {
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
         String documentPath = documentService.constructDocumentPath(collectionPath, objectId.toHexString());
 
-        JsonNode schema = readSchema(collectionPath);
+        JsonNode schema = documentService.readSchema(collectionPath);
 
         JsonNode document = mapper.valueToTree(requestBody);
 
@@ -73,7 +71,7 @@ public class DocumentController {
 
         JsonNode currentDocument = documentService.readDocument(documentPath);
 
-        JsonNode schema = readSchema(collectionPath);
+        JsonNode schema = documentService.readSchema(collectionPath);
 
         schemaValidator.doesDocumentMatchSchema(requestBody, schema, false);
 
@@ -83,14 +81,6 @@ public class DocumentController {
         FileStorageService.saveFile(updatedDocument.toPrettyString(), documentPath);
 
         return updatedDocument;
-    }
-
-
-
-    // Helper method
-    private JsonNode readSchema(String collectionPath) throws IOException {
-        String schemaPath = Paths.get(collectionPath, "schema.json").toString();
-        return documentService.readDocument(schemaPath);
     }
 
 }

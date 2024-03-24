@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -22,7 +23,6 @@ public class IndexService {
 
     private final DocumentService documentService;
 
-
     @Autowired
     public IndexService(DocumentService documentService) {
         this.documentService = documentService;
@@ -30,6 +30,15 @@ public class IndexService {
 
     public String constructIndexPath(String collectionPath, String field) {
         return Paths.get( collectionPath, "indexes", field + ".ser").toString();
+    }
+
+    public Set<String> getPointers(ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index, JsonNode field) {
+        IndexKey key = new IndexKey(field);
+
+        if (index.containsKey(key)) {
+            return index.get(key);
+        }
+        return null;
     }
 
     public void createIndex(List<JsonNode> documents, String collectionPath, String field) throws Exception {
@@ -170,25 +179,6 @@ public class IndexService {
     public String pointerPathToIndexPath(String pointer, String field) {
         String collectionPath = getCollectionPathFromPointer(pointer);
         return Paths.get(collectionPath, "indexes", field + ".ser").toString();
-    }
-
-    public String getMostSelectiveIndexFiled(JsonNode filter, String collectionPath) throws Exception {
-        List<String> indexedFields = getIndexedFields(filter, collectionPath);
-        int minSelectiveSize = Integer.MAX_VALUE;
-        String mostSelectiveIndex = null;
-
-        for (String field: indexedFields) {
-            var index = deserializeIndex( constructIndexPath(collectionPath, field) );
-
-            int indexSelectiveSize = index.get( new IndexKey(filter.get(field)) ).size();
-
-            if (indexSelectiveSize < minSelectiveSize) {
-                minSelectiveSize = indexSelectiveSize;
-                mostSelectiveIndex = field;
-            }
-        }
-
-        return mostSelectiveIndex;
     }
 
 }

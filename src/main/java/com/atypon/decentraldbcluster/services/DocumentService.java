@@ -42,6 +42,11 @@ public class DocumentService {
         throw new ResourceNotFoundException("Document not exists");
     }
 
+    public JsonNode readSchema(String collectionPath) throws IOException {
+        String schemaPath = Paths.get(collectionPath, "schema.json").toString();
+        return readDocument(schemaPath);
+    }
+
     public List<JsonNode> readDocumentsByDocumentsPathList(Set<String> documentsPath) throws IOException {
         List<JsonNode> documents = new ArrayList<>();
         for (var document: documentsPath) {
@@ -52,23 +57,20 @@ public class DocumentService {
 
     public List<JsonNode> readDocumentsByCollectionPath(String collectionPath) throws IOException {
         List<JsonNode> documents = new ArrayList<>();
-        ObjectMapper mapper = new ObjectMapper();
 
         try (Stream<Path> paths = Files.list(Paths.get(collectionPath, "documents"))) {
             paths.forEach(path -> {
-                if (Files.isRegularFile(path)) {
-                    try {
-                        String jsonString = Files.readString(path);
-                        JsonNode document = mapper.readTree(jsonString);
-                        documents.add(document);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                try {
+                    var document = readDocument(path.toString());
+                    documents.add(document);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             });
         }
         return documents;
     }
+
 
     public ObjectId createAndAppendDocumentId(Map<String, Object> document) {
         ObjectId objectId = new ObjectId();
