@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -50,22 +47,61 @@ public class IndexService {
         serializeIndex(index, indexPath);
     }
 
-    public void serializeIndex(ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index, String indexPath) {
+    public void deleteDocumentFromIndexes(String documentPath) throws Exception {
+
+        JsonNode document = documentService.readDocument(documentPath);
+        String collectionPath = getCollectionPathFromPointer(documentPath);
+
+        var indexedFields = getIndexedFields(document, collectionPath);
+
+        for (var field: indexedFields) {
+            String indexPath = constructIndexPath(collectionPath, field);
+
+            var index = deserializeIndex(indexPath);
+
+            removeFromIndex(index, new IndexKey( document.get(field) ), documentPath);
+
+            serializeIndex(index, indexPath);
+        }
+    }
+
+    public void updateIndexes(JsonNode currentDocument, JsonNode requestBody, String collectionPath) throws Exception {
+
+        String documentPath = documentService.constructDocumentPath(collectionPath, currentDocument.get("_id").asText());
+        var indexedFields = getIndexedFields(requestBody, collectionPath);
+
+        for (var field: indexedFields) {
+
+            if (field.equals("_id")) continue;// Prevent update the id
+
+            String indexPath = constructIndexPath(collectionPath, field);
+
+            // Get index
+            var index = deserializeIndex(indexPath);
+
+            // Remove document from old key and add it to the new key
+            removeFromIndex(index, new IndexKey(currentDocument.get(field)), documentPath);
+            addToIndex(index, new IndexKey( requestBody.get(field) ), documentPath);
+
+            // Save changes
+            serializeIndex(index, indexPath);
+        }
+    }
+
+
+    public void serializeIndex(ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index, String indexPath) throws Exception {
         try (FileOutputStream fileOut = new FileOutputStream(indexPath);
              ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
              out.writeObject(index);
         }
-        catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
     }
 
     @SuppressWarnings("unchecked")
-    public ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> deserializeIndex(String path) throws Exception {
+    public ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> deserializeIndex(String indexPath) throws Exception {
 
         ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index;
 
-        try (FileInputStream fileIn = new FileInputStream(path);
+        try (FileInputStream fileIn = new FileInputStream(indexPath);
 
              ObjectInputStream in = new ObjectInputStream(fileIn)) {
             index = (ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>>) in.readObject();
@@ -115,6 +151,7 @@ public class IndexService {
         for (var field: indexedFields) {
             var fieldIndex = deserializeIndex( pointerPathToIndexPath(pointer, field) );
             addToIndex(fieldIndex, new IndexKey(requestBody.get(field)), pointer);
+            serializeIndex(fieldIndex, constructIndexPath(collectionPath, field) );
         }
     }
 
@@ -130,6 +167,17 @@ public class IndexService {
         } else {
             index.put(key, new ConcurrentSkipListSet<>(Collections.singleton(pointer)));
         }
+    }
+
+    public void removeFromIndex(ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index, IndexKey key, String pointer) {
+
+        var pointers = index.get(key);
+        pointers.remove(pointer);
+
+        if (pointers.isEmpty())
+            index.remove(key);
+        else
+            index.put(key, pointers);
     }
 
     public String getCollectionPathFromPointer(String pointer) {

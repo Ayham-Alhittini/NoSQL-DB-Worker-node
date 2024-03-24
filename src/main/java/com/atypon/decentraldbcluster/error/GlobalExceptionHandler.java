@@ -44,7 +44,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     //Not found handling
-    @ExceptionHandler({ResourceNotFoundException.class, FileNotFoundException.class})
+    @ExceptionHandler(ResourceNotFoundException.class)
     public final ResponseEntity<Object> handleResourceNotFoundException(ResourceNotFoundException ex) {
         ApiError apiError = new ApiError(
                 HttpStatus.NOT_FOUND,

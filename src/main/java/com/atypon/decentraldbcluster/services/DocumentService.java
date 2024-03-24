@@ -37,8 +37,6 @@ public class DocumentService {
 
         Path filePath = Paths.get(documentPath);
 
-        String x = filePath.toString();
-
         if (Files.isRegularFile(filePath)) {
             String jsonString = Files.readString(filePath);
             return mapper.readTree(jsonString);
