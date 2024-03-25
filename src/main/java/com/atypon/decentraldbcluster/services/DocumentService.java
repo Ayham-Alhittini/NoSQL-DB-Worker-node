@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.services;
 
-import com.atypon.decentraldbcluster.entity.ObjectId;
+import com.atypon.decentraldbcluster.index.ObjectId;
 import com.atypon.decentraldbcluster.error.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

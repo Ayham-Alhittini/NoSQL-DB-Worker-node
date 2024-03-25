@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.services;
 
-import com.atypon.decentraldbcluster.entity.IndexKey;
+import com.atypon.decentraldbcluster.index.Index;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,11 +12,7 @@ import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 @Service
 public class IndexService {
@@ -32,14 +28,6 @@ public class IndexService {
         return Paths.get( collectionPath, "indexes", field + ".ser").toString();
     }
 
-    public Set<String> getPointers(ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index, JsonNode field) {
-        IndexKey key = new IndexKey(field);
-
-        if (index.containsKey(key)) {
-            return index.get(key);
-        }
-        return null;
-    }
 
     public void createIndex(String collectionPath, String field) throws Exception {
 
@@ -47,25 +35,24 @@ public class IndexService {
 
         String indexPath = constructIndexPath(collectionPath, field);
 
-        ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index = new ConcurrentSkipListMap<>();
+        Index index = new Index();
 
         for (var document: documents) {
             String documentId =  document.get("_id").asText();
             String documentPointer = documentService.constructDocumentPath(collectionPath, documentId);
 
             JsonNode keyNode = document.get(field);
-            IndexKey key = new IndexKey(keyNode);
 
-            addToIndex(index, key, documentPointer);
+            index.add(keyNode, documentPointer);
         }
 
         serializeIndex(index, indexPath);
     }
 
-    public void deleteDocumentFromIndexes(String documentPath) throws Exception {
+    public void deleteDocumentFromIndexes(String documentPointer) throws Exception {
 
-        JsonNode document = documentService.readDocument(documentPath);
-        String collectionPath = getCollectionPathFromPointer(documentPath);
+        JsonNode document = documentService.readDocument(documentPointer);
+        String collectionPath = getCollectionPathFromPointer(documentPointer);
 
         var indexedFields = getIndexedFields(document, collectionPath);
 
@@ -74,7 +61,7 @@ public class IndexService {
 
             var index = deserializeIndex(indexPath);
 
-            removeFromIndex(index, new IndexKey( document.get(field) ), documentPath);
+            index.remove(document.get(field), documentPointer);
 
             serializeIndex(index, indexPath);
         }
@@ -95,8 +82,8 @@ public class IndexService {
             var index = deserializeIndex(indexPath);
 
             // Remove document from old key and add it to the new key
-            removeFromIndex(index, new IndexKey(currentDocument.get(field)), documentPath);
-            addToIndex(index, new IndexKey( requestBody.get(field) ), documentPath);
+            index.remove(currentDocument.get(field), documentPath);
+            index.add(requestBody.get(field), documentPath);
 
             // Save changes
             serializeIndex(index, indexPath);
@@ -104,22 +91,21 @@ public class IndexService {
     }
 
 
-    public void serializeIndex(ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index, String indexPath) throws Exception {
+    public void serializeIndex(Index index, String indexPath) throws Exception {
         try (FileOutputStream fileOut = new FileOutputStream(indexPath);
              ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
              out.writeObject(index);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> deserializeIndex(String indexPath) throws Exception {
+    public Index deserializeIndex(String indexPath) throws Exception {
 
-        ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index;
+        Index index;
 
         try (FileInputStream fileIn = new FileInputStream(indexPath);
 
              ObjectInputStream in = new ObjectInputStream(fileIn)) {
-            index = (ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>>) in.readObject();
+             index = (Index) in.readObject();
         }
         return index;
     }
@@ -143,35 +129,12 @@ public class IndexService {
         var indexedFields = getIndexedFields(requestBody, collectionPath);
 
         for (var field: indexedFields) {
-            var fieldIndex = deserializeIndex( pointerPathToIndexPath(pointer, field) );
-            addToIndex(fieldIndex, new IndexKey(requestBody.get(field)), pointer);
-            serializeIndex(fieldIndex, constructIndexPath(collectionPath, field) );
+            var index = deserializeIndex( pointerPathToIndexPath(pointer, field) );
+
+            index.add(requestBody.get(field), pointer);
+
+            serializeIndex(index, constructIndexPath(collectionPath, field) );
         }
-    }
-
-    public void addToIndex(ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index, IndexKey key, String pointer) {
-
-        if (index.containsKey(key)) {
-            var pointers = index.get(key);
-
-            pointers.add(pointer);
-
-            index.put(key, pointers);
-
-        } else {
-            index.put(key, new ConcurrentSkipListSet<>(Collections.singleton(pointer)));
-        }
-    }
-
-    public void removeFromIndex(ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index, IndexKey key, String pointer) {
-
-        var pointers = index.get(key);
-        pointers.remove(pointer);
-
-        if (pointers.isEmpty())
-            index.remove(key);
-        else
-            index.put(key, pointers);
     }
 
     public String getCollectionPathFromPointer(String pointer) {

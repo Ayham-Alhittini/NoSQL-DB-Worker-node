@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.entity;
+package com.atypon.decentraldbcluster.index;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class IndexKey implements Comparable<IndexKey> , Serializable {
 
     @Serial
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     public JsonNode object;
 

@@ -1,6 +1,5 @@
-package com.atypon.decentraldbcluster.services;
+package com.atypon.decentraldbcluster.schema;
 
-import com.atypon.decentraldbcluster.entity.AppDataType;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class JsonSchemaValidator {
+public class SchemaValidator {
 
     private static final List<String> DATE_FORMATS = Arrays.asList(
             "yyyy-MM-dd'T'HH:mm:ss'Z'",

@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.api.controller;
+package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.services.DocumentService;
 import com.atypon.decentraldbcluster.services.FileStorageService;

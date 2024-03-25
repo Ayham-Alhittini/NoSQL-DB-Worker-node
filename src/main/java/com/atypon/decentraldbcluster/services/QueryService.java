@@ -1,17 +1,13 @@
 package com.atypon.decentraldbcluster.services;
 
-import com.atypon.decentraldbcluster.entity.IndexKey;
 import com.atypon.decentraldbcluster.error.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 @Service
 public class QueryService {
@@ -39,11 +35,15 @@ public class QueryService {
         return filteredDocuments;
     }
 
-    public JsonNode findDocumentById(ConcurrentSkipListMap<IndexKey, ConcurrentSkipListSet<String>> index, String documentId) throws IOException {
+    public JsonNode findDocumentById(String collectionPath, String documentId) throws Exception {
+
+        String indexPath = indexService.constructIndexPath(collectionPath, "_id");
+        var index = indexService.deserializeIndex(indexPath);
+
         JsonNode node = mapper.readTree('\"' + documentId + '\"');
-        IndexKey key = new IndexKey(node);
-        if (index.containsKey(key)) {
-            String pointer = index.get(key).first();
+
+        if (index.containsKey(node)) {
+            String pointer = index.getPointers(node).first();
             return documentService.readDocument(pointer);
         }
         throw new ResourceNotFoundException("Document not exists");
@@ -58,7 +58,7 @@ public class QueryService {
         for (String field: indexedFields) {
             var index = indexService.deserializeIndex( indexService.constructIndexPath(collectionPath, field) );
 
-            var pointers = indexService.getPointers(index, filter.get(field) );
+            var pointers = index.getPointers( filter.get(field) );
 
             if (pointers == null) continue;
 

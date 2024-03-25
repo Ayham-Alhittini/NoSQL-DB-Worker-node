@@ -1,6 +1,7 @@
-package com.atypon.decentraldbcluster.api.controller;
+package com.atypon.decentraldbcluster.api;
 
-import com.atypon.decentraldbcluster.entity.ObjectId;
+import com.atypon.decentraldbcluster.index.ObjectId;
+import com.atypon.decentraldbcluster.schema.SchemaValidator;
 import com.atypon.decentraldbcluster.services.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,12 +17,12 @@ public class DocumentController {
 
     private final UserDetails userDetails;
     private final DocumentService documentService;
-    private final JsonSchemaValidator schemaValidator;
+    private final SchemaValidator schemaValidator;
     private final ObjectMapper mapper;
     private final IndexService indexService;
 
     @Autowired
-    public DocumentController(UserDetails userDetails, DocumentService documentService, JsonSchemaValidator schemaValidator, ObjectMapper mapper, IndexService indexService) {
+    public DocumentController(UserDetails userDetails, DocumentService documentService, SchemaValidator schemaValidator, ObjectMapper mapper, IndexService indexService) {
         this.userDetails = userDetails;
         this.documentService = documentService;
         this.schemaValidator = schemaValidator;
@@ -39,7 +40,6 @@ public class DocumentController {
         String documentPath = documentService.constructDocumentPath(collectionPath, objectId.toHexString());
 
         JsonNode schema = documentService.readSchema(collectionPath);
-
         JsonNode document = mapper.valueToTree(requestBody);
 
         schemaValidator.doesDocumentMatchSchema(document, schema, true);
@@ -70,7 +70,6 @@ public class DocumentController {
         String documentPath = documentService.constructDocumentPath(collectionPath, documentId);
 
         JsonNode currentDocument = documentService.readDocument(documentPath);
-
         JsonNode schema = documentService.readSchema(collectionPath);
 
         schemaValidator.doesDocumentMatchSchema(requestBody, schema, false);

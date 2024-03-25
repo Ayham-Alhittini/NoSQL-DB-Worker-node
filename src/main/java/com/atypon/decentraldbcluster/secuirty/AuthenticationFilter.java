@@ -1,6 +1,5 @@
-package com.atypon.decentraldbcluster.api.filters;
+package com.atypon.decentraldbcluster.secuirty;
 
-import com.atypon.decentraldbcluster.services.JwtService;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,12 +12,12 @@ import java.io.IOException;
 import java.util.Optional;
 
 @Component
-public class JwtAuthenticationFilter implements Filter {
+public class AuthenticationFilter implements Filter {
 
     private final JwtService jwtService;
 
     @Autowired
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public AuthenticationFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }
 

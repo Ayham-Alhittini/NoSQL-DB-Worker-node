@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.api.controller;
+package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.services.*;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,11 +31,8 @@ public class QueryController {
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
-        String indexPath = indexService.constructIndexPath(collectionPath, "_id");
 
-        var index = indexService.deserializeIndex(indexPath);
-
-        return queryService.findDocumentById(index, documentId);
+        return queryService.findDocumentById(collectionPath, documentId);
     }
 
 
@@ -55,7 +52,7 @@ public class QueryController {
         String indexPath = indexService.constructIndexPath(collectionPath, mostSelectiveIndexField);
         var mostSelectiveIndex = indexService.deserializeIndex(indexPath);
 
-        var indexPointers = indexService.getPointers(mostSelectiveIndex, filter.get(mostSelectiveIndexField));
+        var indexPointers = mostSelectiveIndex.getPointers( filter.get(mostSelectiveIndexField) );
 
         var documents = documentService.readDocumentsByDocumentsPathList(indexPointers);
 

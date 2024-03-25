@@ -1,9 +1,9 @@
-package com.atypon.decentraldbcluster.api.controller;
+package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.services.FileStorageService;
 import com.atypon.decentraldbcluster.services.IndexService;
 import com.atypon.decentraldbcluster.services.UserDetails;
-import com.atypon.decentraldbcluster.services.JsonSchemaValidator;
+import com.atypon.decentraldbcluster.schema.SchemaValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +20,11 @@ import java.util.List;
 public class CollectionController {
 
     private final UserDetails userDetails;
-    private final JsonSchemaValidator schemaValidator;
+    private final SchemaValidator schemaValidator;
     private final IndexService indexService;
 
     @Autowired
-    public CollectionController(UserDetails userDetails, JsonSchemaValidator schemaValidator, IndexService indexService) {
+    public CollectionController(UserDetails userDetails, SchemaValidator schemaValidator, IndexService indexService) {
         this.userDetails = userDetails;
         this.schemaValidator = schemaValidator;
         this.indexService = indexService;

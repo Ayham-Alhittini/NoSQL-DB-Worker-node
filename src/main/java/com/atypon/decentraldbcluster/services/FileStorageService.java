@@ -19,6 +19,7 @@ public class FileStorageService {
     private static final String baseDirectory = "./storage/";
 
 
+    //config
     public static String getRootDirectory() {
         return baseDirectory;
     }

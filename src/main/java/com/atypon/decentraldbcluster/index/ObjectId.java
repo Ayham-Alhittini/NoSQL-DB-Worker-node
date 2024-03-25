@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.entity;
+package com.atypon.decentraldbcluster.index;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;

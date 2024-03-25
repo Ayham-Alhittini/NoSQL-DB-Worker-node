@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.services;
 
+import com.atypon.decentraldbcluster.secuirty.JwtService;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

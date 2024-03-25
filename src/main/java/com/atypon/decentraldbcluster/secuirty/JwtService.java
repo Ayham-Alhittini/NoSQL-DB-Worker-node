@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.services;
+package com.atypon.decentraldbcluster.secuirty;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;

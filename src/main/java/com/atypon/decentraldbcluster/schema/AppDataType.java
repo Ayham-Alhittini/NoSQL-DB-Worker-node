@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.entity;
+package com.atypon.decentraldbcluster.schema;
 
 public enum AppDataType {
     OBJECT,
