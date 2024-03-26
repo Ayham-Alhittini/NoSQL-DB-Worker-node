@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.schema;
+package com.atypon.decentraldbcluster.validation;
 
 public enum AppDataType {
     OBJECT,

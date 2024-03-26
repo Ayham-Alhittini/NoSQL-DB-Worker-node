@@ -63,14 +63,6 @@ public class FileStorageService {
         Files.delete(path);
     }
 
-    public static void createBaseStorageDirectory() {
-        try {
-            createDirectory( getRootDirectory() );
-        } catch (IOException e) {
-            System.out.println("Can't create base directory" + e.getMessage());
-        }
-    }
-
     public static List<String> listAllDirectories(String path) {
 
         List<String> directoriesName = new ArrayList<>();

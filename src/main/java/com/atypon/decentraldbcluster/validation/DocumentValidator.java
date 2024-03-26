@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.schema;
+package com.atypon.decentraldbcluster.validation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Service;
@@ -9,13 +9,11 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class SchemaValidator {
-
+public class DocumentValidator {
     private static final List<String> DATE_FORMATS = Arrays.asList(
             "yyyy-MM-dd'T'HH:mm:ss'Z'",
             "yyyy-MM-dd'T'HH:mm:ss",
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy-MM-dd"
+            "yyyy-MM-dd HH:mm:ss"
     );
 
     public void doesDocumentMatchSchema(JsonNode data, JsonNode schema, boolean fieldsRequired) {
@@ -33,7 +31,6 @@ public class SchemaValidator {
 
         if (documentType == AppDataType.OBJECT) {
             schema.fields().forEachRemaining(field -> {
-                if (field.getKey().equals("_id")) return;
 
                 JsonNode documentField = document.get(field.getKey());
                 if (documentField == null) {
@@ -46,33 +43,6 @@ public class SchemaValidator {
             });
         }
     }
-
-    public void validateSchemaDataTypes(JsonNode schema) {
-        validateSchemaWithPath(schema, "schema");
-    }
-
-    private void validateSchemaWithPath(JsonNode schema, String path) {
-        if (!schema.isObject()) {
-            validateDataType(schema, path);
-            return;
-        }
-
-        schema.fields().forEachRemaining(field -> validateSchemaWithPath(field.getValue(), path + "." + field.getKey()));
-    }
-
-    private void validateDataType(JsonNode schema, String path) {
-        String fieldValue = schema.asText().toUpperCase();
-        try {
-            AppDataType.valueOf(fieldValue);
-            if (AppDataType.valueOf(fieldValue) == AppDataType.OBJECT) {
-                throw new IllegalArgumentException(path + ", OBJECT type is not valid here.");
-            }
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(path + ", invalid data type [" + fieldValue + "]");
-        }
-    }
-
-    //--------------------------------------------------------------------
 
     private boolean isMatch(AppDataType dataType, AppDataType schemaDataType) {
         return dataType == schemaDataType || (dataType == AppDataType.INTEGER && schemaDataType == AppDataType.DECIMAL);

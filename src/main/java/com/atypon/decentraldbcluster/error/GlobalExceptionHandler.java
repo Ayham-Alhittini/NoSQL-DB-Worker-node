@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    // TODO: consider more custom exception
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
 

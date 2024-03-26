@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.services;
 
+import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.error.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,27 +24,27 @@ public class QueryService {
         this.mapper = mapper;
     }
 
-    public List<JsonNode> filterDocuments(List<JsonNode> documents, JsonNode filter) {
+    public List<Document> filterDocuments(List<Document> documents, JsonNode filter) {
 
-        List<JsonNode> filteredDocuments = new ArrayList<>();
+        List<Document> filteredDocuments = new ArrayList<>();
 
         for (var document: documents) {
-            if (isDocumentMatch(filter, document))
+            if (isDocumentMatch(filter, document.getData()))
                 filteredDocuments.add(document);
         }
 
         return filteredDocuments;
     }
 
-    public JsonNode findDocumentById(String collectionPath, String documentId) throws Exception {
+    public Document findDocumentById(String collectionPath, String documentId) throws Exception {
 
-        String indexPath = indexService.constructIndexPath(collectionPath, "_id");
+        String indexPath = indexService.getSystemGeneratedIdIndexPath(collectionPath);
         var index = indexService.deserializeIndex(indexPath);
 
-        JsonNode node = mapper.readTree('\"' + documentId + '\"');
+        JsonNode key = mapper.readTree('\"' + documentId + '\"');
 
-        if (index.containsKey(node)) {
-            String pointer = index.getPointers(node).first();
+        if (index.containsKey(key)) {
+            String pointer = index.getPointers(key).first();
             return documentService.readDocument(pointer);
         }
         throw new ResourceNotFoundException("Document not exists");
@@ -56,7 +57,7 @@ public class QueryService {
         String mostSelectiveIndex = null;
 
         for (String field: indexedFields) {
-            var index = indexService.deserializeIndex( indexService.constructIndexPath(collectionPath, field) );
+            var index = indexService.deserializeIndex( indexService.constructUserGeneratedIndexesPath(collectionPath, field) );
 
             var pointers = index.getPointers( filter.get(field) );
 
@@ -71,13 +72,14 @@ public class QueryService {
     }
 
 
-    private boolean isDocumentMatch(JsonNode filter, JsonNode document) {
+    //TODO: you can further improve it by allowing sub objects.
+    private boolean isDocumentMatch(JsonNode filter, JsonNode documentData) {
         var fields = filter.fields();
 
         while (fields.hasNext()) {
             var field = fields.next();
 
-            if (document.get(field.getKey()) == null || !document.get(field.getKey()).equals(field.getValue()))
+            if (documentData.get(field.getKey()) == null || !documentData.get(field.getKey()).equals(field.getValue()))
                 return false;
         }
         return true;

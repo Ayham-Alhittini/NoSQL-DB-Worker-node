@@ -3,7 +3,7 @@ package com.atypon.decentraldbcluster.api;
 import com.atypon.decentraldbcluster.services.FileStorageService;
 import com.atypon.decentraldbcluster.services.IndexService;
 import com.atypon.decentraldbcluster.services.UserDetails;
-import com.atypon.decentraldbcluster.schema.SchemaValidator;
+import com.atypon.decentraldbcluster.validation.SchemaValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,20 +38,17 @@ public class CollectionController {
 
         schemaValidator.validateSchemaDataTypes(schema);
 
-
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
 
         FileStorageService.createDirectory( Paths.get(collectionPath, "documents").toString() );
-        FileStorageService.createDirectory( Paths.get(collectionPath, "indexes").toString() );
+        FileStorageService.createDirectory( Paths.get(collectionPath, "indexes", "system_generated_indexes").toString() );
+        FileStorageService.createDirectory( Paths.get(collectionPath, "indexes", "user_generated_indexes").toString() );
 
         FileStorageService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
 
-        // Auto creation for _id field
-        indexService.createIndex(collectionPath, "_id");
+        indexService.createSystemIdIndex(collectionPath);
     }
-
-
 
     @DeleteMapping("{database}/delete/{collection}")
     public void deleteCollection(HttpServletRequest request,
@@ -64,9 +61,6 @@ public class CollectionController {
         FileStorageService.deleteDirectory(collectionPath);
 
     }
-
-
-
 
     @GetMapping("{database}/showCollections")
     public ResponseEntity<List<String>> showCollections(HttpServletRequest request, @PathVariable String database) {

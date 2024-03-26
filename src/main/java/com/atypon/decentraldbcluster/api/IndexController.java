@@ -1,6 +1,5 @@
 package com.atypon.decentraldbcluster.api;
 
-import com.atypon.decentraldbcluster.services.DocumentService;
 import com.atypon.decentraldbcluster.services.FileStorageService;
 import com.atypon.decentraldbcluster.services.IndexService;
 import com.atypon.decentraldbcluster.services.UserDetails;
@@ -29,6 +28,7 @@ public class IndexController {
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
 
+        // TODO: handle field not exists
         indexService.createIndex(collectionPath, field);
     }
 
@@ -37,7 +37,7 @@ public class IndexController {
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
-        String indexPath = indexService.constructIndexPath(collectionPath, field);
+        String indexPath = indexService.constructUserGeneratedIndexesPath(collectionPath, field);
         FileStorageService.deleteFile(indexPath);
     }
 

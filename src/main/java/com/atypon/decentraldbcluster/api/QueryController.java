@@ -1,5 +1,7 @@
 package com.atypon.decentraldbcluster.api;
 
+import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.index.Index;
 import com.atypon.decentraldbcluster.services.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/query")
@@ -27,7 +30,7 @@ public class QueryController {
     }
 
     @GetMapping("{database}/{collection}/findOne/{documentId}")
-    public JsonNode getData(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
+    public Document getData(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
@@ -37,7 +40,7 @@ public class QueryController {
 
 
     @GetMapping("{database}/{collection}/find")
-    public List<JsonNode> find(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode filter) throws Exception {
+    public List<Document> find(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode filter) throws Exception {
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
@@ -45,16 +48,16 @@ public class QueryController {
         String mostSelectiveIndexField = queryService.getMostSelectiveIndexFiled(filter, collectionPath);
 
         if (mostSelectiveIndexField == null) {
-            var documents = documentService.readDocumentsByCollectionPath(collectionPath);
+            List<Document> documents = documentService.readDocumentsByCollectionPath(collectionPath);
             return queryService.filterDocuments(documents, filter);
         }
 
-        String indexPath = indexService.constructIndexPath(collectionPath, mostSelectiveIndexField);
-        var mostSelectiveIndex = indexService.deserializeIndex(indexPath);
+        String indexPath = indexService.constructUserGeneratedIndexesPath(collectionPath, mostSelectiveIndexField);
+        Index mostSelectiveIndex = indexService.deserializeIndex(indexPath);
 
-        var indexPointers = mostSelectiveIndex.getPointers( filter.get(mostSelectiveIndexField) );
+        Set<String> indexPointers = mostSelectiveIndex.getPointers( filter.get(mostSelectiveIndexField) );
 
-        var documents = documentService.readDocumentsByDocumentsPathList(indexPointers);
+        List<Document> documents = documentService.readDocumentsByDocumentsPathList(indexPointers);
 
         return queryService.filterDocuments(documents, filter);
     }

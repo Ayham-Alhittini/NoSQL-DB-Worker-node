@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.services;
 
-import com.atypon.decentraldbcluster.index.ObjectId;
+import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.error.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,14 +29,13 @@ public class DocumentService {
         return Paths.get( collectionPath , "documents", documentId + ".json").toString();
     }
 
-
-    public JsonNode readDocument(String documentPath) throws IOException {
+    public Document readDocument(String documentPath) throws IOException {
 
         Path filePath = Paths.get(documentPath);
 
         if (Files.isRegularFile(filePath)) {
             String jsonString = Files.readString(filePath);
-            return mapper.readTree(jsonString);
+            return mapper.readValue(jsonString, Document.class);
         }
 
         throw new ResourceNotFoundException("Document not exists");
@@ -44,19 +43,26 @@ public class DocumentService {
 
     public JsonNode readSchema(String collectionPath) throws IOException {
         String schemaPath = Paths.get(collectionPath, "schema.json").toString();
-        return readDocument(schemaPath);
+
+        Path filePath = Paths.get(schemaPath);
+        if (Files.isRegularFile(filePath)) {
+            String jsonString = Files.readString(filePath);
+            return mapper.readTree(jsonString);
+        }
+
+        throw new ResourceNotFoundException("Schema not exists");
     }
 
-    public List<JsonNode> readDocumentsByDocumentsPathList(Set<String> documentsPath) throws IOException {
-        List<JsonNode> documents = new ArrayList<>();
+    public List<Document> readDocumentsByDocumentsPathList(Set<String> documentsPath) throws IOException {
+        List<Document> documents = new ArrayList<>();
         for (var document: documentsPath) {
             documents.add( readDocument(document) );
         }
         return documents;
     }
 
-    public List<JsonNode> readDocumentsByCollectionPath(String collectionPath) throws IOException {
-        List<JsonNode> documents = new ArrayList<>();
+    public List<Document> readDocumentsByCollectionPath(String collectionPath) throws IOException {
+        List<Document> documents = new ArrayList<>();
 
         try (Stream<Path> paths = Files.list(Paths.get(collectionPath, "documents"))) {
             paths.forEach(path -> {
@@ -71,28 +77,10 @@ public class DocumentService {
         return documents;
     }
 
-
-    public ObjectId createAndAppendDocumentId(Map<String, Object> document) {
-        ObjectId objectId = new ObjectId();
-        document.remove("_id");//_id is system generated field
-
-        Map<String, Object> orderedData = new LinkedHashMap<>();
-        orderedData.put("_id", objectId.toHexString());
-        orderedData.putAll(document);
-
-        document.clear();
-        document.putAll(orderedData);
-        return objectId;
-    }
-
     public JsonNode updateDocument(JsonNode requestBody, JsonNode oldDocument) {
         ObjectNode newDocument = (ObjectNode) oldDocument;
-        requestBody.fields().forEachRemaining(field -> {
-            if (!field.getKey().equals("_id"))
-                newDocument.put(field.getKey(), field.getValue());
-        });
+        requestBody.fields().forEachRemaining(field -> newDocument.set(field.getKey(), field.getValue()));
         return newDocument;
     }
-
 
 }

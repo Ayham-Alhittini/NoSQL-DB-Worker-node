@@ -10,10 +10,10 @@ public class IndexKey implements Comparable<IndexKey> , Serializable {
     @Serial
     private static final long serialVersionUID = 2L;
 
-    public JsonNode object;
+    public JsonNode indexedField;
 
-    public IndexKey(JsonNode object) {
-        this.object = object;
+    public IndexKey(JsonNode indexedField) {
+        this.indexedField = indexedField;
     }
 
 
@@ -26,16 +26,21 @@ public class IndexKey implements Comparable<IndexKey> , Serializable {
 
     @Override
     public boolean equals(Object o) {
-        return this.hashCode() == o.hashCode();
+        if (this == o) return true;
+
+        if (!(o instanceof IndexKey other)) return false;
+
+        return indexedField.equals(other.indexedField);
     }
+
 
     @Override
     public int hashCode() {
-        return object.hashCode();
+        return indexedField.hashCode();
     }
 
     @Override
     public String toString() {
-        return object.toPrettyString();
+        return indexedField.toPrettyString();
     }
 }
