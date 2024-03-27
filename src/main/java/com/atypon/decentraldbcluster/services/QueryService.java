@@ -2,6 +2,9 @@ package com.atypon.decentraldbcluster.services;
 
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.error.ResourceNotFoundException;
+import com.atypon.decentraldbcluster.services.documenting.DocumentService;
+import com.atypon.decentraldbcluster.services.indexing.DocumentIndexService;
+import com.atypon.decentraldbcluster.services.indexing.IndexManager;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +17,16 @@ import java.util.List;
 public class QueryService {
 
     private final DocumentService documentService;
-    private final IndexService indexService;
     private final ObjectMapper mapper;
+    private final IndexManager indexManager;
+    private final DocumentIndexService documentIndexService;
 
     @Autowired
-    public QueryService(DocumentService documentService, IndexService indexService, ObjectMapper mapper) {
+    public QueryService(DocumentService documentService, ObjectMapper mapper, IndexManager indexManager, DocumentIndexService documentIndexService) {
         this.documentService = documentService;
-        this.indexService = indexService;
         this.mapper = mapper;
+        this.indexManager = indexManager;
+        this.documentIndexService = documentIndexService;
     }
 
     public List<Document> filterDocuments(List<Document> documents, JsonNode filter) {
@@ -38,8 +43,8 @@ public class QueryService {
 
     public Document findDocumentById(String collectionPath, String documentId) throws Exception {
 
-        String indexPath = indexService.constructSystemGeneratedIndexPath(collectionPath);
-        var index = indexService.loadIndex(indexPath);
+        String indexPath = PathConstructor.constructSystemGeneratedIndexPath(collectionPath);
+        var index = indexManager.loadIndex(indexPath);
 
         JsonNode key = mapper.readTree('\"' + documentId + '\"');
 
@@ -52,12 +57,12 @@ public class QueryService {
 
 
     public String getMostSelectiveIndexFiled(JsonNode filter, String collectionPath) throws Exception {
-        List<String> indexedFields = indexService.getIndexedFields(filter, collectionPath);
+        List<String> indexedFields = documentIndexService.getIndexedFields(filter, collectionPath);
         int minSelectiveSize = Integer.MAX_VALUE;
         String mostSelectiveIndex = null;
 
         for (String field: indexedFields) {
-            var index = indexService.loadIndex( indexService.constructUserGeneratedIndexPath(collectionPath, field) );
+            var index = indexManager.loadIndex( PathConstructor.constructUserGeneratedIndexPath(collectionPath, field) );
 
             var pointers = index.getPointers( filter.get(field) );
 

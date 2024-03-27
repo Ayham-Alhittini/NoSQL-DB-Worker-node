@@ -3,6 +3,8 @@ package com.atypon.decentraldbcluster.api;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.index.Index;
 import com.atypon.decentraldbcluster.services.*;
+import com.atypon.decentraldbcluster.services.documenting.DocumentService;
+import com.atypon.decentraldbcluster.services.indexing.IndexManager;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,14 +18,14 @@ import java.util.Set;
 @CrossOrigin("*")
 public class QueryController {
 
-    private final IndexService indexService;
+    private final IndexManager indexManager;
     private final QueryService queryService;
     private final UserDetails userDetails;
     private final DocumentService documentService;
 
     @Autowired
-    public QueryController(IndexService indexService, UserDetails userDetails, QueryService queryService, DocumentService documentService) {
-        this.indexService = indexService;
+    public QueryController(IndexManager indexManager, UserDetails userDetails, QueryService queryService, DocumentService documentService) {
+        this.indexManager = indexManager;
         this.userDetails = userDetails;
         this.queryService = queryService;
         this.documentService = documentService;
@@ -52,8 +54,8 @@ public class QueryController {
             return queryService.filterDocuments(documents, filter);
         }
 
-        String indexPath = indexService.constructUserGeneratedIndexPath(collectionPath, mostSelectiveIndexField);
-        Index mostSelectiveIndex = indexService.loadIndex(indexPath);
+        String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, mostSelectiveIndexField);
+        Index mostSelectiveIndex = indexManager.loadIndex(indexPath);
 
         Set<String> indexPointers = mostSelectiveIndex.getPointers( filter.get(mostSelectiveIndexField) );
 

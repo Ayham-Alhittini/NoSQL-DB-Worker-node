@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.services;
+package com.atypon.decentraldbcluster.services.documenting;
 
 import com.atypon.decentraldbcluster.entity.Document;
 import org.springframework.stereotype.Service;

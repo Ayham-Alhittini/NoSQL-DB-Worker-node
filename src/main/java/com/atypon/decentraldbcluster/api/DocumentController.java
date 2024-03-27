@@ -2,6 +2,9 @@ package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.services.*;
+import com.atypon.decentraldbcluster.services.documenting.DocumentService;
+import com.atypon.decentraldbcluster.services.documenting.DocumentVersionManager;
+import com.atypon.decentraldbcluster.services.indexing.DocumentIndexService;
 import com.atypon.decentraldbcluster.validation.DocumentValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,18 +21,18 @@ public class DocumentController {
     private final DocumentValidator documentValidator;
     private final DocumentVersionManager documentVersionManager;
     private final ObjectMapper mapper;
-    private final IndexService indexService;
+    private final DocumentIndexService documentIndexService;
 
     @Autowired
     public DocumentController(UserDetails userDetails, DocumentService documentService,
                               DocumentValidator documentValidator, ObjectMapper mapper,
-                              IndexService indexService, DocumentVersionManager documentVersionManager) {
+                              DocumentVersionManager documentVersionManager, DocumentIndexService documentIndexService) {
         this.userDetails = userDetails;
         this.documentService = documentService;
         this.documentValidator = documentValidator;
         this.mapper = mapper;
-        this.indexService = indexService;
         this.documentVersionManager = documentVersionManager;
+        this.documentIndexService = documentIndexService;
     }
 
     //TODO: make validation on extra fields as well
@@ -46,7 +49,7 @@ public class DocumentController {
         documentValidator.doesDocumentMatchSchema(documentData, schema, true);
 
         FileStorageService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
-        indexService.insertToAllIndexes(document, documentPath);
+        documentIndexService.insertToAllIndexes(document, documentPath);
         return document;
     }
 
@@ -58,7 +61,7 @@ public class DocumentController {
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
 
-        indexService.deleteDocumentFromIndexes(documentPath);
+        documentIndexService.deleteDocumentFromIndexes(documentPath);
         FileStorageService.deleteFile(documentPath);
 
     }
@@ -81,7 +84,7 @@ public class DocumentController {
             JsonNode updatedDocumentData = documentService.patchDocument(requestBody, document.getData());
             document.setData(updatedDocumentData);
 
-            indexService.updateIndexes(document, requestBody, collectionPath);
+            documentIndexService.updateIndexes(document, requestBody, collectionPath);
             FileStorageService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
 
             return document;

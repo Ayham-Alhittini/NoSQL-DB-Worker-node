@@ -1,9 +1,9 @@
 package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.services.FileStorageService;
-import com.atypon.decentraldbcluster.services.IndexService;
 import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.services.UserDetails;
+import com.atypon.decentraldbcluster.services.indexing.DocumentIndexService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.*;
 public class IndexController {
 
     private final UserDetails userDetails;
-    private final IndexService indexService;
+    private final DocumentIndexService documentIndexService;
 
 
     @Autowired
-    public IndexController(UserDetails userDetails, IndexService indexService) {
+    public IndexController(UserDetails userDetails, DocumentIndexService documentIndexService) {
         this.userDetails = userDetails;
-        this.indexService = indexService;
+        this.documentIndexService = documentIndexService;
     }
 
     @PostMapping("{database}/{collection}/createIndex/{field}")
@@ -30,7 +30,7 @@ public class IndexController {
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
 
         // TODO: handle field not exists
-        indexService.createIndex(collectionPath, field);
+        documentIndexService.createIndex(collectionPath, field);
     }
 
     @DeleteMapping("{database}/{collection}/deleteIndex/{field}")
@@ -38,7 +38,7 @@ public class IndexController {
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
-        String indexPath = indexService.constructUserGeneratedIndexPath(collectionPath, field);
+        String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
 
         FileStorageService.deleteFile(indexPath);
     }

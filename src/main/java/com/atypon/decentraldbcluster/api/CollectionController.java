@@ -1,9 +1,9 @@
 package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.services.FileStorageService;
-import com.atypon.decentraldbcluster.services.IndexService;
 import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.services.UserDetails;
+import com.atypon.decentraldbcluster.services.indexing.DocumentIndexService;
 import com.atypon.decentraldbcluster.validation.SchemaValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,13 +22,13 @@ public class CollectionController {
 
     private final UserDetails userDetails;
     private final SchemaValidator schemaValidator;
-    private final IndexService indexService;
+    private final DocumentIndexService documentIndexService;
 
     @Autowired
-    public CollectionController(UserDetails userDetails, SchemaValidator schemaValidator, IndexService indexService) {
+    public CollectionController(UserDetails userDetails, SchemaValidator schemaValidator, DocumentIndexService documentIndexService) {
         this.userDetails = userDetails;
         this.schemaValidator = schemaValidator;
-        this.indexService = indexService;
+        this.documentIndexService = documentIndexService;
     }
 
     //TODO: create schema less collection
@@ -49,7 +49,7 @@ public class CollectionController {
 
         FileStorageService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
 
-        indexService.createSystemIdIndex(collectionPath);
+        documentIndexService.createSystemIdIndex(collectionPath);
     }
 
     @DeleteMapping("{database}/delete/{collection}")
