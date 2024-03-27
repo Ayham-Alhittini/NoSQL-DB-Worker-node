@@ -2,6 +2,7 @@ package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.services.FileStorageService;
 import com.atypon.decentraldbcluster.services.IndexService;
+import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import com.atypon.decentraldbcluster.validation.SchemaValidator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,6 +31,7 @@ public class CollectionController {
         this.indexService = indexService;
     }
 
+    //TODO: create schema less collection
     @PostMapping("{database}/create/{collection}")
     public void createCollection(HttpServletRequest request,
                                               @PathVariable String database,
@@ -39,7 +41,7 @@ public class CollectionController {
         schemaValidator.validateSchemaDataTypes(schema);
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
+        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
 
         FileStorageService.createDirectory( Paths.get(collectionPath, "documents").toString() );
         FileStorageService.createDirectory( Paths.get(collectionPath, "indexes", "system_generated_indexes").toString() );
@@ -57,7 +59,7 @@ public class CollectionController {
 
         String userDirectory = userDetails.getUserDirectory(request);
 
-        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
+        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
         FileStorageService.deleteDirectory(collectionPath);
 
     }
@@ -65,7 +67,7 @@ public class CollectionController {
     @GetMapping("{database}/showCollections")
     public ResponseEntity<List<String>> showCollections(HttpServletRequest request, @PathVariable String database) {
 
-        String rootDirectory = FileStorageService.getRootDirectory();
+        String rootDirectory = PathConstructor.getRootDirectory();
         String userDirectory = userDetails.getUserId(request);
 
         String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();

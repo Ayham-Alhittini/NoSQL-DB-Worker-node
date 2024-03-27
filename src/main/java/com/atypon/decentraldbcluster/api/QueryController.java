@@ -33,7 +33,7 @@ public class QueryController {
     public Document getData(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
+        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
 
         return queryService.findDocumentById(collectionPath, documentId);
     }
@@ -43,7 +43,7 @@ public class QueryController {
     public List<Document> find(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode filter) throws Exception {
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
+        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
 
         String mostSelectiveIndexField = queryService.getMostSelectiveIndexFiled(filter, collectionPath);
 

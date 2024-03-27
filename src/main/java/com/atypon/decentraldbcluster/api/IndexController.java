@@ -2,6 +2,7 @@ package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.services.FileStorageService;
 import com.atypon.decentraldbcluster.services.IndexService;
+import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ public class IndexController {
     public void createIndex(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String field) throws Exception {
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
+        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
 
         // TODO: handle field not exists
         indexService.createIndex(collectionPath, field);
@@ -36,7 +37,7 @@ public class IndexController {
     public void deleteIndex(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String field) throws Exception {
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
+        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
         String indexPath = indexService.constructUserGeneratedIndexPath(collectionPath, field);
 
         FileStorageService.deleteFile(indexPath);

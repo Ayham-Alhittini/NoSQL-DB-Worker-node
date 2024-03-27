@@ -38,8 +38,8 @@ public class DocumentController {
         Document document = new Document(documentData);
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
-        String documentPath = documentService.constructDocumentPath(collectionPath, document.getId());
+        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
 
         JsonNode schema = documentService.readSchema(collectionPath);
 
@@ -55,8 +55,8 @@ public class DocumentController {
     public void deleteDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
-        String documentPath = documentService.constructDocumentPath(collectionPath, documentId);
+        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
 
         indexService.deleteDocumentFromIndexes(documentPath);
         FileStorageService.deleteFile(documentPath);
@@ -68,8 +68,8 @@ public class DocumentController {
     public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId,@RequestParam int expectedVersion ,@RequestBody JsonNode requestBody) throws Exception {
 
         String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
-        String documentPath = documentService.constructDocumentPath(collectionPath, documentId);
+        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
 
         JsonNode schema = documentService.readSchema(collectionPath);
 
@@ -78,7 +78,7 @@ public class DocumentController {
 
         if (documentVersionManager.updateVersion(document, expectedVersion)) {
 
-            JsonNode updatedDocumentData = documentService.updateDocument(requestBody, document.getData());
+            JsonNode updatedDocumentData = documentService.patchDocument(requestBody, document.getData());
             document.setData(updatedDocumentData);
 
             indexService.updateIndexes(document, requestBody, collectionPath);

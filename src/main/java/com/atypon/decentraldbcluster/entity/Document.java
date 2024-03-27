@@ -9,16 +9,14 @@ import java.util.UUID;
 public class Document implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    private String id;
+    private final String id = UUID.randomUUID().toString();
     private JsonNode data;
-    private int version;
+    private int version = 1;
 
     public Document() {}
 
     public Document(JsonNode data) {
-        this.id = UUID.randomUUID().toString();
         this.data = data;
-        this.version = 1;
     }
 
     public String getId() {

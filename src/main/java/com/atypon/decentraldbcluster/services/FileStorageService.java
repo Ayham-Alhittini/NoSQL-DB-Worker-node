@@ -16,18 +16,6 @@ import java.util.stream.Stream;
 
 public class FileStorageService {
 
-    private static final String baseDirectory = "./storage/";
-
-
-    //config
-    public static String getRootDirectory() {
-        return baseDirectory;
-    }
-
-    public static String constructCollectionPath(String userDirectory, String database, String collection) {
-        return Paths.get(getRootDirectory(), userDirectory, database, collection).toString();
-    }
-
     public static void createDirectory(String directoryPath) throws IOException {
         Path nodeStorageDir = Paths.get(directoryPath);
 

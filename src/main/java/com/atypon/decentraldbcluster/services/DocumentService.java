@@ -25,10 +25,6 @@ public class DocumentService {
         this.mapper = mapper;
     }
 
-    public String constructDocumentPath(String collectionPath, String documentId) {
-        return Paths.get( collectionPath , "documents", documentId + ".json").toString();
-    }
-
     public Document readDocument(String documentPath) throws IOException {
 
         Path filePath = Paths.get(documentPath);
@@ -77,14 +73,9 @@ public class DocumentService {
         return documents;
     }
 
-    public JsonNode updateDocument(JsonNode requestBody, JsonNode oldDocument) {
+    public JsonNode patchDocument(JsonNode requestBody, JsonNode oldDocument) {
         ObjectNode newDocument = (ObjectNode) oldDocument;
         requestBody.fields().forEachRemaining(field -> newDocument.set(field.getKey(), field.getValue()));
         return newDocument;
     }
-
-    public String getCollectionPathFromDocumentPath(String documentPath) {
-        return documentPath.substring(0, documentPath.indexOf("documents"));
-    }
-
 }

@@ -64,10 +64,11 @@ public class IndexService {
         String indexPath = constructUserGeneratedIndexPath(collectionPath, field);
         Index index = new Index();
         for (Document document : documents) {
-            String documentPath = documentService.constructDocumentPath(collectionPath, document.getId());
+            String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
             JsonNode key = document.getData().get(field);
             index.add(key, documentPath);
         }
+        saveIndex(index, indexPath);
     }
 
     public void createSystemIdIndex(String collectionPath) throws Exception {
@@ -75,15 +76,16 @@ public class IndexService {
         String indexPath = constructSystemGeneratedIndexPath(collectionPath);
         Index index = new Index();
         for (Document document : documents) {
-            String documentPath = documentService.constructDocumentPath(collectionPath, document.getId());
+            String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
             JsonNode key = parseStringToJsonNode(document.getId());
             index.add(key, documentPath);
         }
+        saveIndex(index, indexPath);
     }
 
     public void deleteDocumentFromIndexes(String documentPointer) throws Exception {
         Document document = documentService.readDocument(documentPointer);
-        String collectionPath = documentService.getCollectionPathFromDocumentPath(documentPointer);
+        String collectionPath = PathConstructor.getCollectionPathFromDocumentPath(documentPointer);
         List<String> indexedFields = getIndexedFields(document.getData(), collectionPath);
 
         for (String field : indexedFields) {
@@ -115,7 +117,7 @@ public class IndexService {
             Index index = loadIndex(indexPath);
             JsonNode oldKey = document.getData().get(field);
             JsonNode newKey = requestBody.get(field);
-            String documentPath = documentService.constructDocumentPath(collectionPath, document.getId());
+            String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
 
             if (!oldKey.equals(newKey)) { // Only update if the key has changed
                 index.remove(oldKey, documentPath);
@@ -126,7 +128,7 @@ public class IndexService {
     }
 
     public void insertToAllIndexes(Document document, String pointer) throws Exception {
-        String collectionPath = documentService.getCollectionPathFromDocumentPath(pointer);
+        String collectionPath = PathConstructor.getCollectionPathFromDocumentPath(pointer);
         List<String> indexedFields = getIndexedFields(document.getData(), collectionPath);
 
         for (String field : indexedFields) {

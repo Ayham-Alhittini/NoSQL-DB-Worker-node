@@ -1,6 +1,7 @@
 package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.services.FileStorageService;
+import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ public class DatabaseController {
     @PostMapping("/create/{database}")
     public void createDatabase(HttpServletRequest request, @PathVariable String database) throws IOException {
 
-        String rootDirectory = FileStorageService.getRootDirectory();
+        String rootDirectory = PathConstructor.getRootDirectory();
         String userDirectory = userDetails.getUserDirectory(request);
 
         String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
@@ -38,7 +39,7 @@ public class DatabaseController {
     @DeleteMapping("/delete/{database}")
     public void deleteDatabase(HttpServletRequest request, @PathVariable String database) throws IOException {
 
-        String rootDirectory = FileStorageService.getRootDirectory();
+        String rootDirectory = PathConstructor.getRootDirectory();
         String userDirectory = userDetails.getUserDirectory(request);
 
         String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
@@ -49,7 +50,7 @@ public class DatabaseController {
     @GetMapping("/showDbs")
     public ResponseEntity<List<String>> showDbs(HttpServletRequest request) {
 
-        String rootDirectory = FileStorageService.getRootDirectory();
+        String rootDirectory = PathConstructor.getRootDirectory();
         String userDirectory = userDetails.getUserDirectory(request);
 
         String userPath = Paths.get(rootDirectory, userDirectory).toString();
