@@ -1,10 +1,7 @@
 package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.entity.Document;
-import com.atypon.decentraldbcluster.services.DocumentService;
-import com.atypon.decentraldbcluster.services.FileStorageService;
-import com.atypon.decentraldbcluster.services.IndexService;
-import com.atypon.decentraldbcluster.services.UserDetails;
+import com.atypon.decentraldbcluster.services.*;
 import com.atypon.decentraldbcluster.validation.DocumentValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,21 +16,25 @@ public class DocumentController {
     private final UserDetails userDetails;
     private final DocumentService documentService;
     private final DocumentValidator documentValidator;
+    private final DocumentVersionManager documentVersionManager;
     private final ObjectMapper mapper;
     private final IndexService indexService;
 
     @Autowired
-    public DocumentController(UserDetails userDetails, DocumentService documentService, DocumentValidator documentValidator, ObjectMapper mapper, IndexService indexService) {
+    public DocumentController(UserDetails userDetails, DocumentService documentService,
+                              DocumentValidator documentValidator, ObjectMapper mapper,
+                              IndexService indexService, DocumentVersionManager documentVersionManager) {
         this.userDetails = userDetails;
         this.documentService = documentService;
         this.documentValidator = documentValidator;
         this.mapper = mapper;
         this.indexService = indexService;
+        this.documentVersionManager = documentVersionManager;
     }
 
+    //TODO: make validation on extra fields as well
     @PostMapping("{database}/{collection}/addDocument")
     public Document addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode documentData) throws Exception {
-        //TODO: make validation on extra fields as well
         Document document = new Document(documentData);
 
         String userDirectory = userDetails.getUserDirectory(request);
@@ -62,8 +63,9 @@ public class DocumentController {
 
     }
 
+    // TODO:Eviction Strategy, for document version cashing
     @PatchMapping("{database}/{collection}/updateDocument/{documentId}")
-    public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestBody JsonNode requestBody) throws Exception {
+    public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId,@RequestParam int expectedVersion ,@RequestBody JsonNode requestBody) throws Exception {
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
@@ -72,16 +74,19 @@ public class DocumentController {
         JsonNode schema = documentService.readSchema(collectionPath);
 
         documentValidator.doesDocumentMatchSchema(requestBody, schema, false);
-
         Document document = documentService.readDocument(documentPath);
-        indexService.updateIndexes(document, requestBody, collectionPath);
 
-        JsonNode updatedDocumentData = documentService.updateDocument(requestBody, document.getData());
-        document.setData(updatedDocumentData);
+        if (documentVersionManager.updateVersion(document, expectedVersion)) {
 
-        FileStorageService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
+            JsonNode updatedDocumentData = documentService.updateDocument(requestBody, document.getData());
+            document.setData(updatedDocumentData);
 
-        return document;
+            indexService.updateIndexes(document, requestBody, collectionPath);
+            FileStorageService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
+
+            return document;
+        }
+
+        throw new IllegalArgumentException("Conflict");
     }
-    // TODO:Eviction Strategy, for document version cashing
 }

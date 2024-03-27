@@ -11,14 +11,14 @@ public class Document implements Serializable {
     private static final long serialVersionUID = 1L;
     private String id;
     private JsonNode data;
-    private long version;
+    private int version;
 
     public Document() {}
 
     public Document(JsonNode data) {
         this.id = UUID.randomUUID().toString();
         this.data = data;
-        this.version = 1L;
+        this.version = 1;
     }
 
     public String getId() {
@@ -33,11 +33,11 @@ public class Document implements Serializable {
         this.data = data;
     }
 
-    public long getVersion() {
+    public int getVersion() {
         return version;
     }
 
-    public void setVersion(long version) {
+    public void setVersion(int version) {
         this.version = version;
     }
 }

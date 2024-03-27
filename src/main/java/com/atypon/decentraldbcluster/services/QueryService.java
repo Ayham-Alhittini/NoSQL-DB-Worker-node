@@ -38,8 +38,8 @@ public class QueryService {
 
     public Document findDocumentById(String collectionPath, String documentId) throws Exception {
 
-        String indexPath = indexService.getSystemGeneratedIdIndexPath(collectionPath);
-        var index = indexService.deserializeIndex(indexPath);
+        String indexPath = indexService.constructSystemGeneratedIndexPath(collectionPath);
+        var index = indexService.loadIndex(indexPath);
 
         JsonNode key = mapper.readTree('\"' + documentId + '\"');
 
@@ -57,7 +57,7 @@ public class QueryService {
         String mostSelectiveIndex = null;
 
         for (String field: indexedFields) {
-            var index = indexService.deserializeIndex( indexService.constructUserGeneratedIndexesPath(collectionPath, field) );
+            var index = indexService.loadIndex( indexService.constructUserGeneratedIndexPath(collectionPath, field) );
 
             var pointers = index.getPointers( filter.get(field) );
 

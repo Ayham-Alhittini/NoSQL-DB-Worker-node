@@ -83,4 +83,8 @@ public class DocumentService {
         return newDocument;
     }
 
+    public String getCollectionPathFromDocumentPath(String documentPath) {
+        return documentPath.substring(0, documentPath.indexOf("documents"));
+    }
+
 }

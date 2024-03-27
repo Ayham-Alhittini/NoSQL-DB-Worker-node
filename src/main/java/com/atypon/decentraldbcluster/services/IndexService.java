@@ -2,7 +2,6 @@ package com.atypon.decentraldbcluster.services;
 
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.index.Index;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,169 +25,129 @@ public class IndexService {
         this.mapper = mapper;
     }
 
-    public String constructUserGeneratedIndexesPath(String collectionPath, String field) {
-        return Paths.get( collectionPath, "indexes", "user_generated_indexes", field + ".ser").toString();
+    public String constructUserGeneratedIndexPath(String collectionPath, String fieldName) {
+        return Paths.get(collectionPath, "indexes", "user_generated_indexes", fieldName + ".ser").toString();
+    }
+
+    public String constructSystemGeneratedIndexPath(String collectionPath) {
+        return Paths.get(collectionPath, "indexes", "system_generated_indexes", "id.ser").toString();
+    }
+
+    private void addToIndex(String indexPath, JsonNode key, String valuePath) throws Exception {
+        Index index = loadIndex(indexPath);
+        index.add(key, valuePath);
+        saveIndex(index, indexPath);
+    }
+
+    private void removeFromIndex(String indexPath, JsonNode key, String valuePath) throws Exception {
+        Index index = loadIndex(indexPath);
+        index.remove(key, valuePath);
+        saveIndex(index, indexPath);
+    }
+
+    public Index loadIndex(String indexPath) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(indexPath))) {
+            return (Index) in.readObject();
+        } catch (FileNotFoundException e) {
+            return new Index(); // Return a new index if file does not exist
+        }
+    }
+
+    private void saveIndex(Index index, String indexPath) throws IOException {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(indexPath))) {
+            out.writeObject(index);
+        }
     }
 
     public void createIndex(String collectionPath, String field) throws Exception {
-
         List<Document> documents = documentService.readDocumentsByCollectionPath(collectionPath);
-
-        String indexPath = constructUserGeneratedIndexesPath(collectionPath, field);
-
+        String indexPath = constructUserGeneratedIndexPath(collectionPath, field);
         Index index = new Index();
-
-        for (var document: documents) {
-            String pointer = documentService.constructDocumentPath(collectionPath, document.getId() );
-
+        for (Document document : documents) {
+            String documentPath = documentService.constructDocumentPath(collectionPath, document.getId());
             JsonNode key = document.getData().get(field);
-
-            index.add(key, pointer);
+            index.add(key, documentPath);
         }
-
-        serializeIndex(index, indexPath);
     }
 
     public void createSystemIdIndex(String collectionPath) throws Exception {
         List<Document> documents = documentService.readDocumentsByCollectionPath(collectionPath);
-
-        String indexPath = getSystemGeneratedIdIndexPath(collectionPath);
-
+        String indexPath = constructSystemGeneratedIndexPath(collectionPath);
         Index index = new Index();
-
-        for (var document: documents) {
-            String pointer = documentService.constructDocumentPath(collectionPath, document.getId() );
-
-            JsonNode key = parseStringToJsonNode( document.getId() );
-
-            index.add(key, pointer);
+        for (Document document : documents) {
+            String documentPath = documentService.constructDocumentPath(collectionPath, document.getId());
+            JsonNode key = parseStringToJsonNode(document.getId());
+            index.add(key, documentPath);
         }
-
-        serializeIndex(index, indexPath);
-
     }
 
     public void deleteDocumentFromIndexes(String documentPointer) throws Exception {
-
         Document document = documentService.readDocument(documentPointer);
-        String collectionPath = getCollectionPathFromPointer(documentPointer);
+        String collectionPath = documentService.getCollectionPathFromDocumentPath(documentPointer);
+        List<String> indexedFields = getIndexedFields(document.getData(), collectionPath);
 
-        var indexedFields = getIndexedFields(document.getData(), collectionPath);
-
-        for (var field: indexedFields) {
-            String indexPath = constructUserGeneratedIndexesPath(collectionPath, field);
-
-            var index = deserializeIndex(indexPath);
-
-            index.remove(document.getData().get(field), documentPointer);
-
-            serializeIndex(index, indexPath);
+        for (String field : indexedFields) {
+            String indexPath = constructUserGeneratedIndexPath(collectionPath, field);
+            removeFromIndex(indexPath, document.getData().get(field), documentPointer);
         }
 
-        deleteFromSystemIdIndex(collectionPath, document.getId(), documentPointer);
+        // System-generated index update
+        String systemIndexPath = constructSystemGeneratedIndexPath(collectionPath);
+        removeFromIndex(systemIndexPath, mapper.readTree("\"" + document.getId() + "\""), documentPointer);
     }
-
-    private void deleteFromSystemIdIndex(String collectionPath, String id, String pointer) throws Exception {
-        String indexPath = getSystemGeneratedIdIndexPath(collectionPath);
-        var index = deserializeIndex(indexPath);
-
-        index.remove( parseStringToJsonNode(id) , pointer );
-
-        serializeIndex(index, indexPath);
-    }
-
-
-
-    public void updateIndexes(Document document, JsonNode requestBody, String collectionPath) throws Exception {
-
-        String documentPath = documentService.constructDocumentPath(collectionPath, document.getId());
-        var indexedFields = getIndexedFields(requestBody, collectionPath);
-
-        for (var field: indexedFields) {
-
-            String indexPath = constructUserGeneratedIndexesPath(collectionPath, field);
-
-            // Get index
-            var index = deserializeIndex(indexPath);
-
-            // Remove document from old key and add it to the new key
-            index.remove(document.getData().get(field), documentPath);
-            index.add(requestBody.get(field), documentPath);
-
-            // Save changes
-            serializeIndex(index, indexPath);
-        }
-    }
-
-
-    public void serializeIndex(Index index, String indexPath) throws Exception {
-        try (FileOutputStream fileOut = new FileOutputStream(indexPath);
-             ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
-             out.writeObject(index);
-        }
-    }
-
-    public Index deserializeIndex(String indexPath) throws Exception {
-
-        Index index;
-
-        try (FileInputStream fileIn = new FileInputStream(indexPath);
-
-             ObjectInputStream in = new ObjectInputStream(fileIn)) {
-             index = (Index) in.readObject();
-        }
-        return index;
-    }
-
 
     public List<String> getIndexedFields(JsonNode jsonNode, String collectionPath) {
         List<String> indexedFields = new ArrayList<>();
-
         jsonNode.fields().forEachRemaining(field -> {
-            String indexPath = constructUserGeneratedIndexesPath(collectionPath, field.getKey());
+            String indexPath = constructUserGeneratedIndexPath(collectionPath, field.getKey());
             if (Files.exists(Paths.get(indexPath))) {
                 indexedFields.add(field.getKey());
             }
         });
-
         return indexedFields;
     }
 
+    public void updateIndexes(Document document, JsonNode requestBody, String collectionPath) throws Exception {
+        List<String> indexedFields = getIndexedFields(requestBody, collectionPath);
+        for (String field : indexedFields) {
+            // Update existing index
+            String indexPath = constructUserGeneratedIndexPath(collectionPath, field);
+            Index index = loadIndex(indexPath);
+            JsonNode oldKey = document.getData().get(field);
+            JsonNode newKey = requestBody.get(field);
+            String documentPath = documentService.constructDocumentPath(collectionPath, document.getId());
+
+            if (!oldKey.equals(newKey)) { // Only update if the key has changed
+                index.remove(oldKey, documentPath);
+                index.add(newKey, documentPath);
+                saveIndex(index, indexPath);
+            }
+        }
+    }
+
     public void insertToAllIndexes(Document document, String pointer) throws Exception {
-        String collectionPath = getCollectionPathFromPointer(pointer);
-        var indexedFields = getIndexedFields(document.getData(), collectionPath);
+        String collectionPath = documentService.getCollectionPathFromDocumentPath(pointer);
+        List<String> indexedFields = getIndexedFields(document.getData(), collectionPath);
 
-        for (var field: indexedFields) {
-
-            var index = deserializeIndex( constructUserGeneratedIndexesPath(collectionPath, field) );
-
-            index.add(document.getData().get(field), pointer);
-
-            serializeIndex(index, constructUserGeneratedIndexesPath(collectionPath, field) );
+        for (String field : indexedFields) {
+            String indexPath = constructUserGeneratedIndexPath(collectionPath, field);
+            JsonNode key = document.getData().get(field);
+            addToIndex(indexPath, key, pointer);
         }
 
-        insertToSystemIdIndex(collectionPath, document.getId(), pointer);
+        // System-generated ID index update
+        insertToSystemIdIndex(document, collectionPath, pointer);
     }
 
-    private void insertToSystemIdIndex(String collectionPath, String id, String pointer) throws Exception {
-        String indexPath = getSystemGeneratedIdIndexPath(collectionPath);
-        var index = deserializeIndex(indexPath);
-
-        index.add( parseStringToJsonNode(id) , pointer );
-
-        serializeIndex(index, indexPath);
+    private void insertToSystemIdIndex(Document document, String collectionPath, String pointer) throws Exception {
+        String indexPath = constructSystemGeneratedIndexPath(collectionPath);
+        JsonNode key = mapper.readTree("\"" + document.getId() + "\"");
+        addToIndex(indexPath, key, pointer);
     }
 
-    public String getSystemGeneratedIdIndexPath(String collectionPath) {
-        return Paths.get(collectionPath, "indexes", "system_generated_indexes", "id.ser").toString();
-    }
+    // Helper methods for constructing paths, serializing/deserializing indexes, and adding/removing documents from indexes...
 
-    public String getCollectionPathFromPointer(String pointer) {
-        return pointer.substring(0, pointer.indexOf("documents"));
+    public JsonNode parseStringToJsonNode(String string) throws IOException {
+        return mapper.readTree("\"" + string + "\"");
     }
-
-    public JsonNode parseStringToJsonNode(String string) throws JsonProcessingException {
-        return mapper.readTree( "\"" + string + "\"");
-    }
-
 }

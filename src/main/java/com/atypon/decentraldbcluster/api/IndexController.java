@@ -37,7 +37,8 @@ public class IndexController {
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = FileStorageService.constructCollectionPath(userDirectory, database, collection);
-        String indexPath = indexService.constructUserGeneratedIndexesPath(collectionPath, field);
+        String indexPath = indexService.constructUserGeneratedIndexPath(collectionPath, field);
+
         FileStorageService.deleteFile(indexPath);
     }
 

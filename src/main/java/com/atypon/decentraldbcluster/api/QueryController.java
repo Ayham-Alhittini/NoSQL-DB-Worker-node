@@ -52,8 +52,8 @@ public class QueryController {
             return queryService.filterDocuments(documents, filter);
         }
 
-        String indexPath = indexService.constructUserGeneratedIndexesPath(collectionPath, mostSelectiveIndexField);
-        Index mostSelectiveIndex = indexService.deserializeIndex(indexPath);
+        String indexPath = indexService.constructUserGeneratedIndexPath(collectionPath, mostSelectiveIndexField);
+        Index mostSelectiveIndex = indexService.loadIndex(indexPath);
 
         Set<String> indexPointers = mostSelectiveIndex.getPointers( filter.get(mostSelectiveIndexField) );
 
