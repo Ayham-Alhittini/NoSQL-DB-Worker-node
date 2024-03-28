@@ -1,10 +1,8 @@
 package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.lock.OptimisticLocking;
 import com.atypon.decentraldbcluster.services.*;
-import com.atypon.decentraldbcluster.services.documenting.DocumentService;
-import com.atypon.decentraldbcluster.services.documenting.DocumentVersionManager;
-import com.atypon.decentraldbcluster.services.indexing.DocumentIndexService;
 import com.atypon.decentraldbcluster.validation.DocumentValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,20 +17,22 @@ public class DocumentController {
     private final UserDetails userDetails;
     private final DocumentService documentService;
     private final DocumentValidator documentValidator;
-    private final DocumentVersionManager documentVersionManager;
     private final ObjectMapper mapper;
+    private final FileSystemService fileSystemService;
     private final DocumentIndexService documentIndexService;
+    private final OptimisticLocking optimisticLocking;
 
     @Autowired
     public DocumentController(UserDetails userDetails, DocumentService documentService,
-                              DocumentValidator documentValidator, ObjectMapper mapper,
-                              DocumentVersionManager documentVersionManager, DocumentIndexService documentIndexService) {
+                              DocumentValidator documentValidator, ObjectMapper mapper, FileSystemService fileSystemService,
+                              DocumentIndexService documentIndexService, OptimisticLocking optimisticLocking) {
         this.userDetails = userDetails;
         this.documentService = documentService;
         this.documentValidator = documentValidator;
         this.mapper = mapper;
-        this.documentVersionManager = documentVersionManager;
+        this.fileSystemService = fileSystemService;
         this.documentIndexService = documentIndexService;
+        this.optimisticLocking = optimisticLocking;
     }
 
     //TODO: make validation on extra fields as well
@@ -48,7 +48,7 @@ public class DocumentController {
 
         documentValidator.doesDocumentMatchSchema(documentData, schema, true);
 
-        FileStorageService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
+        fileSystemService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
         documentIndexService.insertToAllIndexes(document, documentPath);
         return document;
     }
@@ -62,7 +62,7 @@ public class DocumentController {
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
 
         documentIndexService.deleteDocumentFromIndexes(documentPath);
-        FileStorageService.deleteFile(documentPath);
+        fileSystemService.deleteFile(documentPath);
 
     }
 
@@ -79,14 +79,17 @@ public class DocumentController {
         documentValidator.doesDocumentMatchSchema(requestBody, schema, false);
         Document document = documentService.readDocument(documentPath);
 
-        if (documentVersionManager.updateVersion(document, expectedVersion)) {
+        if (optimisticLocking.attemptVersionUpdate(document, expectedVersion)) {
+            try {
+                JsonNode updatedDocumentData = documentService.patchDocument(requestBody, document.getData());
+                document.setData(updatedDocumentData);
+                document.incrementVersion();
 
-            JsonNode updatedDocumentData = documentService.patchDocument(requestBody, document.getData());
-            document.setData(updatedDocumentData);
-
-            documentIndexService.updateIndexes(document, requestBody, collectionPath);
-            FileStorageService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
-
+                documentIndexService.updateIndexes(document, requestBody, collectionPath);
+                fileSystemService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
+            } finally {
+                optimisticLocking.clearDocumentVersion(documentId);// To prevent storing unneeded document
+            }
             return document;
         }
 

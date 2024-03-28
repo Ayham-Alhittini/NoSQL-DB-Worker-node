@@ -1,11 +1,10 @@
 package com.atypon.decentraldbcluster.api;
 
-import com.atypon.decentraldbcluster.services.FileStorageService;
+import com.atypon.decentraldbcluster.services.FileSystemService;
 import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -19,10 +18,12 @@ public class DatabaseController {
 
 
     private final UserDetails userDetails;
+    private final FileSystemService fileSystemService;
 
     @Autowired
-    public DatabaseController(UserDetails userDetails) {
+    public DatabaseController(UserDetails userDetails, FileSystemService fileSystemService) {
         this.userDetails = userDetails;
+        this.fileSystemService = fileSystemService;
     }
 
     @PostMapping("/create/{database}")
@@ -32,7 +33,7 @@ public class DatabaseController {
         String userDirectory = userDetails.getUserDirectory(request);
 
         String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
-        FileStorageService.createDirectory( databasePath);
+        fileSystemService.createDirectory(databasePath);
 
     }
 
@@ -43,21 +44,18 @@ public class DatabaseController {
         String userDirectory = userDetails.getUserDirectory(request);
 
         String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
-        FileStorageService.deleteDirectory( databasePath);
+        fileSystemService.deleteDirectory( databasePath);
 
     }
 
     @GetMapping("/showDbs")
-    public ResponseEntity<List<String>> showDbs(HttpServletRequest request) {
+    public List<String> showDbs(HttpServletRequest request) {
 
         String rootDirectory = PathConstructor.getRootDirectory();
         String userDirectory = userDetails.getUserDirectory(request);
 
         String userPath = Paths.get(rootDirectory, userDirectory).toString();
 
-        List<String> dbs = FileStorageService.listAllDirectories(userPath);
-
-        return ResponseEntity.ok(dbs);
-
+        return fileSystemService.listAllDirectories(userPath);
     }
 }

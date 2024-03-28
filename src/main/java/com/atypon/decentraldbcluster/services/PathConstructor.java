@@ -25,8 +25,14 @@ public class PathConstructor {
         return Paths.get( collectionPath , "documents", documentId + ".json").toString();
     }
 
-    public static String getCollectionPathFromDocumentPath(String documentPath) {
+    public static String extractCollectionPathFromDocumentPath(String documentPath) {
         return documentPath.substring(0, documentPath.indexOf("documents"));
     }
+
+    public static String extractDocumentIdFromDocumentPath(String documentPath) {
+        String temp = documentPath.substring(documentPath.indexOf("documents/") + "documents/".length());
+        return temp.substring(0, temp.indexOf(".json"));
+    }
+
 
 }

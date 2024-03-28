@@ -1,14 +1,13 @@
 package com.atypon.decentraldbcluster.api;
 
-import com.atypon.decentraldbcluster.services.FileStorageService;
+import com.atypon.decentraldbcluster.services.DocumentIndexService;
+import com.atypon.decentraldbcluster.services.FileSystemService;
 import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.services.UserDetails;
-import com.atypon.decentraldbcluster.services.indexing.DocumentIndexService;
 import com.atypon.decentraldbcluster.validation.SchemaValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -23,12 +22,15 @@ public class CollectionController {
     private final UserDetails userDetails;
     private final SchemaValidator schemaValidator;
     private final DocumentIndexService documentIndexService;
+    private final FileSystemService fileSystemService;
 
     @Autowired
-    public CollectionController(UserDetails userDetails, SchemaValidator schemaValidator, DocumentIndexService documentIndexService) {
+    public CollectionController(UserDetails userDetails, SchemaValidator schemaValidator,
+                                DocumentIndexService documentIndexService, FileSystemService fileSystemService) {
         this.userDetails = userDetails;
         this.schemaValidator = schemaValidator;
         this.documentIndexService = documentIndexService;
+        this.fileSystemService = fileSystemService;
     }
 
     //TODO: create schema less collection
@@ -43,11 +45,11 @@ public class CollectionController {
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
 
-        FileStorageService.createDirectory( Paths.get(collectionPath, "documents").toString() );
-        FileStorageService.createDirectory( Paths.get(collectionPath, "indexes", "system_generated_indexes").toString() );
-        FileStorageService.createDirectory( Paths.get(collectionPath, "indexes", "user_generated_indexes").toString() );
+        fileSystemService.createDirectory( Paths.get(collectionPath, "documents").toString() );
+        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "system_generated_indexes").toString() );
+        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "user_generated_indexes").toString() );
 
-        FileStorageService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
+        fileSystemService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
 
         documentIndexService.createSystemIdIndex(collectionPath);
     }
@@ -60,20 +62,18 @@ public class CollectionController {
         String userDirectory = userDetails.getUserDirectory(request);
 
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
-        FileStorageService.deleteDirectory(collectionPath);
+        fileSystemService.deleteDirectory(collectionPath);
 
     }
 
     @GetMapping("{database}/showCollections")
-    public ResponseEntity<List<String>> showCollections(HttpServletRequest request, @PathVariable String database) {
+    public List<String> showCollections(HttpServletRequest request, @PathVariable String database) {
 
         String rootDirectory = PathConstructor.getRootDirectory();
         String userDirectory = userDetails.getUserId(request);
 
         String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
 
-        List<String> dbs = FileStorageService.listAllDirectories(databasePath);
-
-        return ResponseEntity.ok(dbs);
+        return fileSystemService.listAllDirectories(databasePath);
     }
 }

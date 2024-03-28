@@ -3,8 +3,6 @@ package com.atypon.decentraldbcluster.api;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.index.Index;
 import com.atypon.decentraldbcluster.services.*;
-import com.atypon.decentraldbcluster.services.documenting.DocumentService;
-import com.atypon.decentraldbcluster.services.indexing.IndexManager;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +34,6 @@ public class QueryController {
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
-
         return queryService.findDocumentById(collectionPath, documentId);
     }
 

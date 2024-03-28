@@ -1,9 +1,7 @@
-package com.atypon.decentraldbcluster.services.indexing;
+package com.atypon.decentraldbcluster.services;
 
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.index.Index;
-import com.atypon.decentraldbcluster.services.documenting.DocumentService;
-import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +53,7 @@ public class DocumentIndexService {
 
     public void deleteDocumentFromIndexes(String documentPointer) throws Exception {
         Document document = documentService.readDocument(documentPointer);
-        String collectionPath = PathConstructor.getCollectionPathFromDocumentPath(documentPointer);
+        String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(documentPointer);
         List<String> indexedFields = getIndexedFields(document.getData(), collectionPath);
 
         for (String field : indexedFields) {
@@ -86,7 +84,7 @@ public class DocumentIndexService {
     }
 
     public void insertToAllIndexes(Document document, String pointer) throws Exception {
-        String collectionPath = PathConstructor.getCollectionPathFromDocumentPath(pointer);
+        String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(pointer);
         List<String> indexedFields = getIndexedFields(document.getData(), collectionPath);
 
         for (String field : indexedFields) {

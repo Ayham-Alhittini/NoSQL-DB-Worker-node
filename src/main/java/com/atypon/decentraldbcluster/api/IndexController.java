@@ -1,9 +1,9 @@
 package com.atypon.decentraldbcluster.api;
 
-import com.atypon.decentraldbcluster.services.FileStorageService;
+import com.atypon.decentraldbcluster.services.FileSystemService;
 import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.services.UserDetails;
-import com.atypon.decentraldbcluster.services.indexing.DocumentIndexService;
+import com.atypon.decentraldbcluster.services.DocumentIndexService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,12 +15,14 @@ public class IndexController {
 
     private final UserDetails userDetails;
     private final DocumentIndexService documentIndexService;
+    private final FileSystemService fileSystemService;
 
 
     @Autowired
-    public IndexController(UserDetails userDetails, DocumentIndexService documentIndexService) {
+    public IndexController(UserDetails userDetails, DocumentIndexService documentIndexService, FileSystemService fileSystemService) {
         this.userDetails = userDetails;
         this.documentIndexService = documentIndexService;
+        this.fileSystemService = fileSystemService;
     }
 
     @PostMapping("{database}/{collection}/createIndex/{field}")
@@ -40,7 +42,7 @@ public class IndexController {
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
         String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
 
-        FileStorageService.deleteFile(indexPath);
+        fileSystemService.deleteFile(indexPath);
     }
 
 }

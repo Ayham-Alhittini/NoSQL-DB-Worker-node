@@ -1,29 +1,35 @@
 package com.atypon.decentraldbcluster.api;
 
+import com.atypon.decentraldbcluster.lock.DiskResourcesLock;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
+import java.util.concurrent.CyclicBarrier;
 
 @RestController
 @RequestMapping("/api/test")
 public class TestController {
 
     private final CyclicBarrier waiter = new CyclicBarrier(2);
+    private final DiskResourcesLock resourcesLock = new DiskResourcesLock();
     public TestController() {
 
     }
 
-    @GetMapping
-    public String get() throws BrokenBarrierException, InterruptedException {
-        waiter.await();
-        return "Hello";
+    @GetMapping("/hold")
+    public void holdWrite() {
+        resourcesLock.lockWriteResource("resource1");
+    }
+
+    @GetMapping("/get")
+    public String getRead() {
+        resourcesLock.lockReadResource("resource1");
+        try {
+            return "This is read content";
+        } finally {
+            resourcesLock.releaseReadResource("resource1");
+        }
     }
 
 }

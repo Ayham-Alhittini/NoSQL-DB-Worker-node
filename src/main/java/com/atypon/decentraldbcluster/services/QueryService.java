@@ -1,12 +1,7 @@
 package com.atypon.decentraldbcluster.services;
 
 import com.atypon.decentraldbcluster.entity.Document;
-import com.atypon.decentraldbcluster.error.ResourceNotFoundException;
-import com.atypon.decentraldbcluster.services.documenting.DocumentService;
-import com.atypon.decentraldbcluster.services.indexing.DocumentIndexService;
-import com.atypon.decentraldbcluster.services.indexing.IndexManager;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,14 +12,12 @@ import java.util.List;
 public class QueryService {
 
     private final DocumentService documentService;
-    private final ObjectMapper mapper;
     private final IndexManager indexManager;
     private final DocumentIndexService documentIndexService;
 
     @Autowired
-    public QueryService(DocumentService documentService, ObjectMapper mapper, IndexManager indexManager, DocumentIndexService documentIndexService) {
+    public QueryService(DocumentService documentService, IndexManager indexManager, DocumentIndexService documentIndexService) {
         this.documentService = documentService;
-        this.mapper = mapper;
         this.indexManager = indexManager;
         this.documentIndexService = documentIndexService;
     }
@@ -43,16 +36,8 @@ public class QueryService {
 
     public Document findDocumentById(String collectionPath, String documentId) throws Exception {
 
-        String indexPath = PathConstructor.constructSystemGeneratedIndexPath(collectionPath);
-        var index = indexManager.loadIndex(indexPath);
-
-        JsonNode key = mapper.readTree('\"' + documentId + '\"');
-
-        if (index.containsKey(key)) {
-            String pointer = index.getPointers(key).first();
-            return documentService.readDocument(pointer);
-        }
-        throw new ResourceNotFoundException("Document not exists");
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
+        return documentService.readDocument(documentPath);
     }
 
 
