@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -50,6 +51,9 @@ public class DocumentController {
 
         fileSystemService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
         documentIndexService.insertToAllIndexes(document, documentPath);
+
+        BroadcastService.doBroadcast(request, "addDocument/" + database + "/" + collection, mapper.valueToTree(document), HttpMethod.POST);
+
         return document;
     }
 
@@ -63,6 +67,8 @@ public class DocumentController {
 
         documentIndexService.deleteDocumentFromIndexes(documentPath);
         fileSystemService.deleteFile(documentPath);
+
+        BroadcastService.doBroadcast(request, "deleteDocument/" + database + "/" + collection + "/" + documentId, null, HttpMethod.DELETE);
 
     }
 
@@ -87,6 +93,9 @@ public class DocumentController {
 
                 documentIndexService.updateIndexes(document, requestBody, collectionPath);
                 fileSystemService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
+
+                BroadcastService.doBroadcast(request, "updateDocument/" + database + "/" + collection + "/" + documentId, requestBody, HttpMethod.PUT);
+
             } finally {
                 optimisticLocking.clearDocumentVersion(documentId);// To prevent storing unneeded document
             }

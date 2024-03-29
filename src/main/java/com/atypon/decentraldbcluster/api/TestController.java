@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.api.external;
+package com.atypon.decentraldbcluster.api;
 
 import com.atypon.decentraldbcluster.config.NodeConfiguration;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/test")
@@ -29,7 +31,7 @@ public class TestController {
     public String endpoint2(HttpServletRequest request) {
         RestTemplate restTemplate = new RestTemplate();
 
-        String url = "http://localhost:8081/api/test/endpoint1";
+        String url = "http://localhost:8082/api/test/endpoint1";
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
@@ -43,6 +45,10 @@ public class TestController {
     @GetMapping("endpoint3")
     public int endpoint3() {
         return NodeConfiguration.getCurrentNodePort();
+    }
+    @GetMapping("endpoint4")
+    public List<String> endpoint4() {
+        return NodeConfiguration.getNodesAddress();
     }
 
 

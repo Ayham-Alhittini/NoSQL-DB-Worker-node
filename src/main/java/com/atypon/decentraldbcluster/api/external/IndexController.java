@@ -1,11 +1,9 @@
 package com.atypon.decentraldbcluster.api.external;
 
-import com.atypon.decentraldbcluster.services.FileSystemService;
-import com.atypon.decentraldbcluster.services.PathConstructor;
-import com.atypon.decentraldbcluster.services.UserDetails;
-import com.atypon.decentraldbcluster.services.DocumentIndexService;
+import com.atypon.decentraldbcluster.services.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,6 +31,7 @@ public class IndexController {
 
         // TODO: handle field not exists
         documentIndexService.createIndex(collectionPath, field);
+        BroadcastService.doBroadcast(request, "createIndex/" + database + "/" + collection + "/" + field, null, HttpMethod.POST);
     }
 
     @DeleteMapping("{database}/{collection}/deleteIndex/{field}")
@@ -43,6 +42,7 @@ public class IndexController {
         String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
 
         fileSystemService.deleteFile(indexPath);
+        BroadcastService.doBroadcast(request, "dropIndex/" + database + "/" + collection + "/" + field, null, HttpMethod.DELETE);
     }
 
 }

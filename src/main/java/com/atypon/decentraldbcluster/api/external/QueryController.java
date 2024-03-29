@@ -34,6 +34,7 @@ public class QueryController {
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
+
         return queryService.findDocumentById(collectionPath, documentId);
     }
 

@@ -1,13 +1,11 @@
 package com.atypon.decentraldbcluster.api.external;
 
-import com.atypon.decentraldbcluster.services.DocumentIndexService;
-import com.atypon.decentraldbcluster.services.FileSystemService;
-import com.atypon.decentraldbcluster.services.PathConstructor;
-import com.atypon.decentraldbcluster.services.UserDetails;
+import com.atypon.decentraldbcluster.services.*;
 import com.atypon.decentraldbcluster.validation.SchemaValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -52,6 +50,9 @@ public class CollectionController {
         fileSystemService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
 
         documentIndexService.createSystemIdIndex(collectionPath);
+
+        BroadcastService.doBroadcast(request, "createCollection/" + database + "/" + collection, schema, HttpMethod.POST);
+
     }
 
     @DeleteMapping("{database}/delete/{collection}")
@@ -63,7 +64,7 @@ public class CollectionController {
 
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
         fileSystemService.deleteDirectory(collectionPath);
-
+        BroadcastService.doBroadcast(request, "dropCollection/" + database + "/" + collection, null, HttpMethod.DELETE);
     }
 
     @GetMapping("{database}/showCollections")

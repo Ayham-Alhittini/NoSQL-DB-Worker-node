@@ -1,10 +1,12 @@
 package com.atypon.decentraldbcluster.api.external;
 
+import com.atypon.decentraldbcluster.services.BroadcastService;
 import com.atypon.decentraldbcluster.services.FileSystemService;
 import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -35,7 +37,10 @@ public class DatabaseController {
         String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
         fileSystemService.createDirectory(databasePath);
 
+        BroadcastService.doBroadcast(request, "createDB/" + database, null, HttpMethod.POST);
     }
+
+
 
     @DeleteMapping("/delete/{database}")
     public void deleteDatabase(HttpServletRequest request, @PathVariable String database) throws IOException {
@@ -46,6 +51,7 @@ public class DatabaseController {
         String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
         fileSystemService.deleteDirectory( databasePath);
 
+        BroadcastService.doBroadcast(request, "dropDB/" + database, null, HttpMethod.DELETE);
     }
 
     @GetMapping("/showDbs")
