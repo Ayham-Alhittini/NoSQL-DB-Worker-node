@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.api;
+package com.atypon.decentraldbcluster.api.external;
 
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.lock.OptimisticLocking;

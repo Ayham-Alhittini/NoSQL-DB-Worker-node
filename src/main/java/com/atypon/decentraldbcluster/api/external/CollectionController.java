@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.api;
+package com.atypon.decentraldbcluster.api.external;
 
 import com.atypon.decentraldbcluster.services.DocumentIndexService;
 import com.atypon.decentraldbcluster.services.FileSystemService;
