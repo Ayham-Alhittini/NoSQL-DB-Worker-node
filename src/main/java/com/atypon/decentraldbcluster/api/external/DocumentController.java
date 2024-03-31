@@ -1,6 +1,7 @@
 package com.atypon.decentraldbcluster.api.external;
 
 import com.atypon.decentraldbcluster.affinity.AffinityLoadBalancer;
+import com.atypon.decentraldbcluster.affinity.RedirectToAffinity;
 import com.atypon.decentraldbcluster.config.NodeConfiguration;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.lock.OptimisticLocking;
@@ -10,15 +11,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
 
 @RestController
 @RequestMapping("/api/document")
@@ -80,7 +74,7 @@ public class DocumentController {
         //from here we should redirect if not affinity
 
         if (document.getAffinityPort() != NodeConfiguration.getCurrentNodePort()) {
-            redirectToAffinity(request, null, HttpMethod.DELETE, document.getAffinityPort());
+            RedirectToAffinity.redirect(request, null, HttpMethod.DELETE, document.getAffinityPort());
             return;
         }
 
@@ -104,11 +98,10 @@ public class DocumentController {
         Document document = documentService.readDocument(documentPath);
         //from here we should redirect if not affinity
         if (document.getAffinityPort() != NodeConfiguration.getCurrentNodePort()) {
-            return redirectToAffinity(request, requestBody, HttpMethod.PUT, document.getAffinityPort());
+            return RedirectToAffinity.redirect(request, requestBody, HttpMethod.PUT, document.getAffinityPort());
         }
 
         JsonNode schema = documentService.readSchema(collectionPath);
-
         documentValidator.doesDocumentMatchSchema(requestBody, schema, false);
 
         if (optimisticLocking.attemptVersionUpdate(document, expectedVersion)) {
@@ -130,58 +123,4 @@ public class DocumentController {
 
         throw new IllegalArgumentException("Conflict");
     }
-
-    private Object redirectToAffinity(HttpServletRequest request, JsonNode body, HttpMethod method, int affinityPort) {
-        RestTemplate restTemplate = new RestTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
-        HttpEntity<JsonNode> requestEntity = new HttpEntity<>(body, headers);
-
-        Enumeration<String> parameterNames = request.getParameterNames();
-
-        while (parameterNames.hasMoreElements()) {
-            String paramName = parameterNames.nextElement();
-            System.out.println("Parameter Name: " + paramName); // Log parameter name
-
-            String[] paramValues = request.getParameterValues(paramName);
-            for (String value : paramValues) {
-                System.out.println("Value: " + value); // Log each parameter's value(s)
-            }
-        }
-
-
-        return restTemplate.exchange( getRequestUrl(request, affinityPort) , method, requestEntity, Object.class);
-    }
-
-    private String getRequestUrl(HttpServletRequest request, int affinityPort) {
-        StringBuilder requestURL = new StringBuilder(request.getRequestURL().toString());
-        Enumeration<String> parameterNames = request.getParameterNames();
-
-        // Check if there are parameters to append
-        if (parameterNames.hasMoreElements()) {
-            requestURL.append("?"); // Start the query string if there are parameters
-        }
-
-        while (parameterNames.hasMoreElements()) {
-            String paramName = parameterNames.nextElement();
-            String[] paramValues = request.getParameterValues(paramName);
-
-            for (int i = 0; i < paramValues.length; i++) {
-                requestURL.append(URLEncoder.encode(paramName, StandardCharsets.UTF_8))
-                        .append("=")
-                        .append(URLEncoder.encode(paramValues[i], StandardCharsets.UTF_8));
-                if (i < paramValues.length - 1) {
-                    requestURL.append("&");
-                }
-            }
-
-            if (parameterNames.hasMoreElements()) {
-                requestURL.append("&");
-            }
-        }
-
-        return requestURL.toString().replace("http://localhost:" +  NodeConfiguration.getCurrentNodePort(), NodeConfiguration.getNodeAddress(affinityPort));
-    }
-
 }

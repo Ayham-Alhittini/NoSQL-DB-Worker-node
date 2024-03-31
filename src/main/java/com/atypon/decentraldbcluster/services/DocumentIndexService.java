@@ -17,9 +17,9 @@ import java.util.List;
 @Service
 public class DocumentIndexService {
 
-    private final DocumentService documentService;
-    private final IndexManager indexManager;
     private final ObjectMapper mapper;
+    private final IndexManager indexManager;
+    private final DocumentService documentService;
 
     @Autowired
     public DocumentIndexService(DocumentService documentService, IndexManager indexManager, ObjectMapper mapper) {

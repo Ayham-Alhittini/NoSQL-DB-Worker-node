@@ -14,7 +14,7 @@ public class AffinityLoadBalancer {
     private final HashMap<Integer, AffinityNode> nodesKey = new HashMap<>();
 
     public AffinityLoadBalancer() {
-//        initializeAffinityNodes();
+        initializeAffinityNodes();
     }
 
     public void initializeAffinityNodes() {

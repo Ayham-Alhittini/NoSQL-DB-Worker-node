@@ -2,7 +2,7 @@ package com.atypon.decentraldbcluster.affinity;
 
 public class AffinityNode implements Comparable<AffinityNode>{
 
-    private int nodePort;
+    private final int nodePort;
     private int assignedDocumentsCount;
 
     public AffinityNode(int nodePort, int assignedDocumentsCount) {
@@ -12,10 +12,6 @@ public class AffinityNode implements Comparable<AffinityNode>{
 
     public int getNodePort() {
         return nodePort;
-    }
-
-    public void setNodePort(int nodePort) {
-        this.nodePort = nodePort;
     }
 
     public int getAssignedDocumentsCount() {
@@ -34,13 +30,5 @@ public class AffinityNode implements Comparable<AffinityNode>{
         if (getAssignedDocumentsCount() == o.getAssignedDocumentsCount())
             return getNodePort() - o.getNodePort();
         return getAssignedDocumentsCount() - o.getAssignedDocumentsCount();
-    }
-
-    @Override
-    public String toString() {
-        return "AffinityNode{" +
-                "nodePort=" + nodePort +
-                ", assignedDocumentsCount=" + assignedDocumentsCount +
-                '}';
     }
 }

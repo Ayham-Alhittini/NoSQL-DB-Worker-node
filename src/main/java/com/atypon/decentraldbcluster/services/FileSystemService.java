@@ -20,8 +20,6 @@ import java.util.stream.Stream;
 @Service
 public class FileSystemService {
     private final DiskResourcesLock resourcesLock;
-
-    //All should be locked
     @Autowired
     public FileSystemService(DiskResourcesLock resourcesLock) {
         this.resourcesLock = resourcesLock;
