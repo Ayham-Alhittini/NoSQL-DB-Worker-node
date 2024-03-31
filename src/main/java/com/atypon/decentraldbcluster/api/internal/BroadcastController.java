@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.api.internal;
 
+import com.atypon.decentraldbcluster.affinity.AffinityLoadBalancer;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.services.*;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,19 +17,22 @@ import java.nio.file.Paths;
 @CrossOrigin("*")
 public class BroadcastController {
 
-    private final UserDetails userDetails;
-    private final FileSystemService fileSystemService;
-    private final DocumentIndexService documentIndexService;
-    private final DocumentService documentService;
     private final ObjectMapper mapper;
+    private final UserDetails userDetails;
+    private final DocumentService documentService;
+    private final FileSystemService fileSystemService;
+    private final AffinityLoadBalancer affinityLoadBalancer;
+    private final DocumentIndexService documentIndexService;
 
     @Autowired
-    public BroadcastController(UserDetails userDetails, FileSystemService fileSystemService, DocumentIndexService documentIndexService, DocumentService documentService, ObjectMapper mapper) {
+    public BroadcastController(UserDetails userDetails, FileSystemService fileSystemService, DocumentIndexService documentIndexService,
+                               DocumentService documentService, ObjectMapper mapper, AffinityLoadBalancer affinityLoadBalancer) {
+        this.mapper = mapper;
         this.userDetails = userDetails;
+        this.documentService = documentService;
         this.fileSystemService = fileSystemService;
         this.documentIndexService = documentIndexService;
-        this.documentService = documentService;
-        this.mapper = mapper;
+        this.affinityLoadBalancer = affinityLoadBalancer;
     }
 
     @PostMapping("/createDB/{database}")
@@ -86,6 +90,8 @@ public class BroadcastController {
     @PostMapping("addDocument/{database}/{collection}")
     public Document addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody Document document) throws Exception {
 
+        affinityLoadBalancer.incrementNodeAssignedDocuments(document.getAffinityPort());
+
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
@@ -102,6 +108,9 @@ public class BroadcastController {
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
 
+        Document document = documentService.readDocument(documentPath);
+        affinityLoadBalancer.decrementNodeAssignedDocuments(document.getAffinityPort());
+
         documentIndexService.deleteDocumentFromIndexes(documentPath);
         fileSystemService.deleteFile(documentPath);
 
@@ -116,6 +125,7 @@ public class BroadcastController {
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
 
         Document document = documentService.readDocument(documentPath);
+        document.incrementVersion();
         JsonNode updatedDocumentData = documentService.patchDocument(requestBody, document.getData());
         document.setData(updatedDocumentData);
 

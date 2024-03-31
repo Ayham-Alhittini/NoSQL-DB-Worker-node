@@ -12,11 +12,13 @@ public class Document implements Serializable {
     private final String id = UUID.randomUUID().toString();
     private JsonNode data;
     private int version = 1;
+    private int affinityPort;
 
     public Document() {}
 
-    public Document(JsonNode data) {
+    public Document(JsonNode data, int affinityPort) {
         this.data = data;
+        this.affinityPort = affinityPort;
     }
 
     public String getId() {
@@ -37,5 +39,12 @@ public class Document implements Serializable {
 
     public void incrementVersion() {
         this.version++;
+    }
+    public int getAffinityPort() {
+        return affinityPort;
+    }
+
+    public void setAffinityPort(int affinityPort) {
+        this.affinityPort = affinityPort;
     }
 }

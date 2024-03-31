@@ -2,6 +2,7 @@ package com.atypon.decentraldbcluster.api.external;
 
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.index.Index;
+import com.atypon.decentraldbcluster.index.IndexManager;
 import com.atypon.decentraldbcluster.services.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;

@@ -11,7 +11,6 @@ public class NodeConfiguration {
     private static List<Integer> otherNodesPort;
 
     //Development
-
 //    private static final String baseNodeAddress = "http://localhost:";
 //
 //    private static int currentNodePort = 8081;
@@ -32,6 +31,9 @@ public class NodeConfiguration {
 
     public static int getCurrentNodePort() {
         return currentNodePort;
+    }
+    public static String getCurrentNodeAddress() {
+        return getNodeAddress(currentNodePort);
     }
 
     public static List<Integer> getOtherNodesPort() {

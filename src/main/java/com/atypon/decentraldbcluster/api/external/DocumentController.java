@@ -1,5 +1,7 @@
 package com.atypon.decentraldbcluster.api.external;
 
+import com.atypon.decentraldbcluster.affinity.AffinityLoadBalancer;
+import com.atypon.decentraldbcluster.config.NodeConfiguration;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.lock.OptimisticLocking;
 import com.atypon.decentraldbcluster.services.*;
@@ -8,38 +10,47 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
 
 @RestController
 @RequestMapping("/api/document")
 public class DocumentController {
 
+    private final ObjectMapper mapper;
     private final UserDetails userDetails;
     private final DocumentService documentService;
-    private final DocumentValidator documentValidator;
-    private final ObjectMapper mapper;
     private final FileSystemService fileSystemService;
-    private final DocumentIndexService documentIndexService;
     private final OptimisticLocking optimisticLocking;
+    private final DocumentValidator documentValidator;
+    private final AffinityLoadBalancer affinityLoadBalancer;
+    private final DocumentIndexService documentIndexService;
 
     @Autowired
     public DocumentController(UserDetails userDetails, DocumentService documentService,
                               DocumentValidator documentValidator, ObjectMapper mapper, FileSystemService fileSystemService,
-                              DocumentIndexService documentIndexService, OptimisticLocking optimisticLocking) {
+                              DocumentIndexService documentIndexService, OptimisticLocking optimisticLocking, AffinityLoadBalancer affinityLoadBalancer) {
+        this.mapper = mapper;
         this.userDetails = userDetails;
         this.documentService = documentService;
         this.documentValidator = documentValidator;
-        this.mapper = mapper;
         this.fileSystemService = fileSystemService;
-        this.documentIndexService = documentIndexService;
         this.optimisticLocking = optimisticLocking;
+        this.documentIndexService = documentIndexService;
+        this.affinityLoadBalancer = affinityLoadBalancer;
     }
 
     //TODO: make validation on extra fields as well
     @PostMapping("{database}/{collection}/addDocument")
     public Document addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode documentData) throws Exception {
-        Document document = new Document(documentData);
+        Document document = new Document(documentData, affinityLoadBalancer.getNextAffinityNodePort());
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
@@ -65,6 +76,16 @@ public class DocumentController {
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
 
+        Document document = documentService.readDocument(documentPath);
+        //from here we should redirect if not affinity
+
+        if (document.getAffinityPort() != NodeConfiguration.getCurrentNodePort()) {
+            redirectToAffinity(request, null, HttpMethod.DELETE, document.getAffinityPort());
+            return;
+        }
+
+        affinityLoadBalancer.decrementNodeAssignedDocuments(document.getAffinityPort());
+
         documentIndexService.deleteDocumentFromIndexes(documentPath);
         fileSystemService.deleteFile(documentPath);
 
@@ -73,17 +94,22 @@ public class DocumentController {
     }
 
     // TODO:Eviction Strategy, for document version cashing
-    @PatchMapping("{database}/{collection}/updateDocument/{documentId}")
-    public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId,@RequestParam int expectedVersion ,@RequestBody JsonNode requestBody) throws Exception {
+    @PutMapping("{database}/{collection}/updateDocument/{documentId}")
+    public Object updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId,@RequestParam int expectedVersion ,@RequestBody JsonNode requestBody) throws Exception {
 
         String userDirectory = userDetails.getUserDirectory(request);
         String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
 
+        Document document = documentService.readDocument(documentPath);
+        //from here we should redirect if not affinity
+        if (document.getAffinityPort() != NodeConfiguration.getCurrentNodePort()) {
+            return redirectToAffinity(request, requestBody, HttpMethod.PUT, document.getAffinityPort());
+        }
+
         JsonNode schema = documentService.readSchema(collectionPath);
 
         documentValidator.doesDocumentMatchSchema(requestBody, schema, false);
-        Document document = documentService.readDocument(documentPath);
 
         if (optimisticLocking.attemptVersionUpdate(document, expectedVersion)) {
             try {
@@ -104,4 +130,58 @@ public class DocumentController {
 
         throw new IllegalArgumentException("Conflict");
     }
+
+    private Object redirectToAffinity(HttpServletRequest request, JsonNode body, HttpMethod method, int affinityPort) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", request.getHeader("Authorization"));
+        HttpEntity<JsonNode> requestEntity = new HttpEntity<>(body, headers);
+
+        Enumeration<String> parameterNames = request.getParameterNames();
+
+        while (parameterNames.hasMoreElements()) {
+            String paramName = parameterNames.nextElement();
+            System.out.println("Parameter Name: " + paramName); // Log parameter name
+
+            String[] paramValues = request.getParameterValues(paramName);
+            for (String value : paramValues) {
+                System.out.println("Value: " + value); // Log each parameter's value(s)
+            }
+        }
+
+
+        return restTemplate.exchange( getRequestUrl(request, affinityPort) , method, requestEntity, Object.class);
+    }
+
+    private String getRequestUrl(HttpServletRequest request, int affinityPort) {
+        StringBuilder requestURL = new StringBuilder(request.getRequestURL().toString());
+        Enumeration<String> parameterNames = request.getParameterNames();
+
+        // Check if there are parameters to append
+        if (parameterNames.hasMoreElements()) {
+            requestURL.append("?"); // Start the query string if there are parameters
+        }
+
+        while (parameterNames.hasMoreElements()) {
+            String paramName = parameterNames.nextElement();
+            String[] paramValues = request.getParameterValues(paramName);
+
+            for (int i = 0; i < paramValues.length; i++) {
+                requestURL.append(URLEncoder.encode(paramName, StandardCharsets.UTF_8))
+                        .append("=")
+                        .append(URLEncoder.encode(paramValues[i], StandardCharsets.UTF_8));
+                if (i < paramValues.length - 1) {
+                    requestURL.append("&");
+                }
+            }
+
+            if (parameterNames.hasMoreElements()) {
+                requestURL.append("&");
+            }
+        }
+
+        return requestURL.toString().replace("http://localhost:" +  NodeConfiguration.getCurrentNodePort(), NodeConfiguration.getNodeAddress(affinityPort));
+    }
+
 }

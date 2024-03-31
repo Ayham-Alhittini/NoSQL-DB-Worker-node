@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.services;
+package com.atypon.decentraldbcluster.index;
 
 import com.atypon.decentraldbcluster.index.Index;
 import com.atypon.decentraldbcluster.lock.DiskResourcesLock;
