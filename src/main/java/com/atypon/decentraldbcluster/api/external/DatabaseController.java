@@ -40,8 +40,6 @@ public class DatabaseController {
         BroadcastService.doBroadcast(request, "createDB/" + database, null, HttpMethod.POST);
     }
 
-
-
     @DeleteMapping("/delete/{database}")
     public void deleteDatabase(HttpServletRequest request, @PathVariable String database) throws IOException {
 
