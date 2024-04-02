@@ -1,8 +1,13 @@
 package com.atypon.decentraldbcluster.validation;
 
+import com.atypon.decentraldbcluster.services.FileSystemService;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -10,13 +15,30 @@ import java.util.List;
 
 @Service
 public class DocumentValidator {
+    private final ObjectMapper mapper;
+    private final FileSystemService fileSystemService;
+
+    @Autowired
+    public DocumentValidator(ObjectMapper mapper, FileSystemService fileSystemService) {
+        this.mapper = mapper;
+        this.fileSystemService = fileSystemService;
+    }
+
     private static final List<String> DATE_FORMATS = Arrays.asList(
             "yyyy-MM-dd'T'HH:mm:ss'Z'",
             "yyyy-MM-dd'T'HH:mm:ss",
             "yyyy-MM-dd HH:mm:ss"
     );
 
-    public void doesDocumentMatchSchema(JsonNode data, JsonNode schema, boolean fieldsRequired) {
+    public JsonNode readSchema(String collectionPath) throws IOException {
+        String schemaPath = Paths.get(collectionPath, "schema.json").toString();
+
+        String fileContent = fileSystemService.loadFileContent(schemaPath);
+        return mapper.readTree(fileContent);
+    }
+
+    public void doesDocumentMatchSchema(JsonNode data, String schemaCollection, boolean fieldsRequired) throws IOException {
+        JsonNode schema = readSchema(schemaCollection);
         doesDocumentMatchSchemaWithPath(data, schema, "schema", fieldsRequired);
     }
 

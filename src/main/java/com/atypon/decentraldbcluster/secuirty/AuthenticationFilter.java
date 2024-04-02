@@ -16,10 +16,10 @@ import java.util.Optional;
 @Order(1)
 public class AuthenticationFilter implements Filter {
 
-    private final JwtService jwtService;
+    private final JwtUtil jwtService;
 
     @Autowired
-    public AuthenticationFilter(JwtService jwtService) {
+    public AuthenticationFilter(JwtUtil jwtService) {
         this.jwtService = jwtService;
     }
 

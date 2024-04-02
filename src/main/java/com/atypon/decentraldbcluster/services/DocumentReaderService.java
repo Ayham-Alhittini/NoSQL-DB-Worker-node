@@ -14,30 +14,22 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class DocumentService {
+public class DocumentReaderService {
 
     private final ObjectMapper mapper;
     private final FileSystemService fileSystemService;
 
     @Autowired
-    public DocumentService(ObjectMapper mapper, FileSystemService fileSystemService) {
+    public DocumentReaderService(ObjectMapper mapper, FileSystemService fileSystemService) {
         this.mapper = mapper;
         this.fileSystemService = fileSystemService;
     }
 
     public Document readDocument(String documentPath) throws IOException {
-
         String fileContent = fileSystemService.loadFileContent(documentPath);
         return mapper.readValue(fileContent, Document.class);
-
     }
 
-    public JsonNode readSchema(String collectionPath) throws IOException {
-        String schemaPath = Paths.get(collectionPath, "schema.json").toString();
-
-        String fileContent = fileSystemService.loadFileContent(schemaPath);
-        return mapper.readTree(fileContent);
-    }
 
     public List<Document> readDocumentsByDocumentsPathList(Set<String> documentsPath) throws IOException {
         List<Document> documents = new ArrayList<>();
@@ -53,7 +45,6 @@ public class DocumentService {
         for (String documentPath: filesPath) {
             documents.add( readDocument(documentPath) );
         }
-
         return documents;
     }
 

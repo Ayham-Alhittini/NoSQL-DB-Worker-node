@@ -10,14 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class QueryService {
+public class DocumentFilterService {
 
-    private final DocumentService documentService;
+    private final DocumentReaderService documentService;
     private final IndexManager indexManager;
     private final DocumentIndexService documentIndexService;
 
     @Autowired
-    public QueryService(DocumentService documentService, IndexManager indexManager, DocumentIndexService documentIndexService) {
+    public DocumentFilterService(DocumentReaderService documentService, IndexManager indexManager, DocumentIndexService documentIndexService) {
         this.documentService = documentService;
         this.indexManager = indexManager;
         this.documentIndexService = documentIndexService;
@@ -35,8 +35,8 @@ public class QueryService {
         return filteredDocuments;
     }
 
+    //Todo: should be at reader not the filter, since no filter applied
     public Document findDocumentById(String collectionPath, String documentId) throws Exception {
-
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
         return documentService.readDocument(documentPath);
     }

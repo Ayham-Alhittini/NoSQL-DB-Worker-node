@@ -1,14 +1,13 @@
 package com.atypon.decentraldbcluster.api.external;
 
-import com.atypon.decentraldbcluster.affinity.AffinityLoadBalancer;
-import com.atypon.decentraldbcluster.affinity.RedirectToAffinity;
-import com.atypon.decentraldbcluster.config.NodeConfiguration;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.lock.OptimisticLocking;
-import com.atypon.decentraldbcluster.services.*;
-import com.atypon.decentraldbcluster.validation.DocumentValidator;
+import com.atypon.decentraldbcluster.query.QueryExecutor;
+import com.atypon.decentraldbcluster.query.base.Query;
+import com.atypon.decentraldbcluster.query.documents.DocumentQueryBuilder;
+import com.atypon.decentraldbcluster.services.BroadcastService;
+import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -18,109 +17,80 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/document")
 public class DocumentController {
 
-    private final ObjectMapper mapper;
     private final UserDetails userDetails;
-    private final DocumentService documentService;
-    private final FileSystemService fileSystemService;
+    private final QueryExecutor queryExecutor;
     private final OptimisticLocking optimisticLocking;
-    private final DocumentValidator documentValidator;
-    private final AffinityLoadBalancer affinityLoadBalancer;
-    private final DocumentIndexService documentIndexService;
 
     @Autowired
-    public DocumentController(UserDetails userDetails, DocumentService documentService,
-                              DocumentValidator documentValidator, ObjectMapper mapper, FileSystemService fileSystemService,
-                              DocumentIndexService documentIndexService, OptimisticLocking optimisticLocking, AffinityLoadBalancer affinityLoadBalancer) {
-        this.mapper = mapper;
+    public DocumentController(UserDetails userDetails, OptimisticLocking optimisticLocking, QueryExecutor queryExecutor) {
         this.userDetails = userDetails;
-        this.documentService = documentService;
-        this.documentValidator = documentValidator;
-        this.fileSystemService = fileSystemService;
+        this.queryExecutor = queryExecutor;
         this.optimisticLocking = optimisticLocking;
-        this.documentIndexService = documentIndexService;
-        this.affinityLoadBalancer = affinityLoadBalancer;
     }
 
-    //TODO: make validation on extra fields as well
-    @PostMapping("{database}/{collection}/addDocument")
-    public Document addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode documentData) throws Exception {
-        Document document = new Document(documentData, affinityLoadBalancer.getNextAffinityNodePort());
+    @PostMapping("addDocument/{database}/{collection}")
+    public Object addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode documentData) throws Exception {
 
-        String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
-        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
+        DocumentQueryBuilder builder = new DocumentQueryBuilder();
+        Query query = builder
+                .withOriginator(userDetails.getUserId(request))
+                .withDatabase(database)
+                .withCollection(collection)
+                .addDocument(documentData)
+                .build();
 
-        JsonNode schema = documentService.readSchema(collectionPath);
+        var addedDocument = queryExecutor.exec(query);
 
-        documentValidator.doesDocumentMatchSchema(documentData, schema, true);
-
-        fileSystemService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
-        documentIndexService.insertToAllIndexes(document, documentPath);
-
-        BroadcastService.doBroadcast(request, "addDocument/" + database + "/" + collection, mapper.valueToTree(document), HttpMethod.POST);
-
-        return document;
+        BroadcastService.doBroadcast(request, "addDocument/" + database + "/" + collection, addedDocument, HttpMethod.POST);
+        return addedDocument;
     }
 
 
-    @DeleteMapping("{database}/{collection}/deleteDocument/{documentId}")
+    @DeleteMapping("deleteDocument/{database}/{collection}/{documentId}")
     public void deleteDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
 
-        String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
-        String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
+        Document document = (Document) request.getAttribute("document");
 
-        Document document = documentService.readDocument(documentPath);
-        //from here we should redirect if not affinity
+        DocumentQueryBuilder builder = new DocumentQueryBuilder();
+        Query query = builder
+                .withOriginator(userDetails.getUserId(request))
+                .withDatabase(database)
+                .withCollection(collection)
+                .deleteDocument(document)
+                .build();
 
-        if (document.getAffinityPort() != NodeConfiguration.getCurrentNodePort()) {
-            RedirectToAffinity.redirect(request, null, HttpMethod.DELETE, document.getAffinityPort());
-            return;
-        }
-
-        affinityLoadBalancer.decrementNodeAssignedDocuments(document.getAffinityPort());
-
-        documentIndexService.deleteDocumentFromIndexes(documentPath);
-        fileSystemService.deleteFile(documentPath);
-
+        queryExecutor.exec(query);
         BroadcastService.doBroadcast(request, "deleteDocument/" + database + "/" + collection + "/" + documentId, null, HttpMethod.DELETE);
-
     }
 
-    // TODO:Eviction Strategy, for document version cashing
-    @PutMapping("{database}/{collection}/updateDocument/{documentId}")
-    public Object updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId,@RequestParam int expectedVersion ,@RequestBody JsonNode requestBody) throws Exception {
 
-        String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
-        String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
+    @PutMapping("updateDocument/{database}/{collection}/{documentId}")
+    public Object updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestParam int expectedVersion, @RequestBody JsonNode requestBody) throws Exception {
 
-        Document document = documentService.readDocument(documentPath);
-        //from here we should redirect if not affinity
-        if (document.getAffinityPort() != NodeConfiguration.getCurrentNodePort()) {
-            return RedirectToAffinity.redirect(request, requestBody, HttpMethod.PUT, document.getAffinityPort());
-        }
-
-        JsonNode schema = documentService.readSchema(collectionPath);
-        documentValidator.doesDocumentMatchSchema(requestBody, schema, false);
+        Document document = (Document) request.getAttribute("document");
 
         if (optimisticLocking.attemptVersionUpdate(document, expectedVersion)) {
-            try {
-                JsonNode updatedDocumentData = documentService.patchDocument(requestBody, document.getData());
-                document.setData(updatedDocumentData);
-                document.incrementVersion();
 
-                documentIndexService.updateIndexes(document, requestBody, collectionPath);
-                fileSystemService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
+            DocumentQueryBuilder builder = new DocumentQueryBuilder();
+            Query query = builder
+                    .withOriginator(userDetails.getUserId(request))
+                    .withDatabase(database)
+                    .withCollection(collection)
+                    .updateDocument(document, requestBody)
+                    .build();
 
-                BroadcastService.doBroadcast(request, "updateDocument/" + database + "/" + collection + "/" + documentId, requestBody, HttpMethod.PUT);
+            var result = queryExecutor.exec(query);
+            optimisticLocking.clearDocumentVersion(documentId);// To prevent storing unneeded document
 
-            } finally {
-                optimisticLocking.clearDocumentVersion(documentId);// To prevent storing unneeded document
-            }
-            return document;
+            BroadcastService.doBroadcast(request, "updateDocument/" + database + "/" + collection + "/" + documentId, requestBody, HttpMethod.PUT);
+            return result;
         }
-
         throw new IllegalArgumentException("Conflict");
     }
 }
+
+
+
+
+//TODO: make validation on extra fields as well for addDocument
+//TODO:Eviction Strategy, for document version cashing

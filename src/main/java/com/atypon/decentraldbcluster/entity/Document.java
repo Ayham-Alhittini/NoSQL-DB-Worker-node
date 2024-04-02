@@ -44,7 +44,4 @@ public class Document implements Serializable {
         return affinityPort;
     }
 
-    public void setAffinityPort(int affinityPort) {
-        this.affinityPort = affinityPort;
-    }
 }

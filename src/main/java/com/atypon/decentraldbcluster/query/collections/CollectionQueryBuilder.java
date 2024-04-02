@@ -1,6 +1,7 @@
 package com.atypon.decentraldbcluster.query.collections;
 
 import com.atypon.decentraldbcluster.query.base.QueryBuilder;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class CollectionQueryBuilder implements QueryBuilder {
 
@@ -9,6 +10,11 @@ public class CollectionQueryBuilder implements QueryBuilder {
     public CollectionQueryBuilder createCollection(String collection) {
         query.setCollection(collection);
         query.setCollectionAction(CollectionAction.CREATE);
+        return this;
+    }
+
+    public CollectionQueryBuilder withSchema(JsonNode schema) {
+        query.setSchema(schema);
         return this;
     }
 

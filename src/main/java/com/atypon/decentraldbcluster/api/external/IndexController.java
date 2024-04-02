@@ -1,5 +1,8 @@
 package com.atypon.decentraldbcluster.api.external;
 
+import com.atypon.decentraldbcluster.query.QueryExecutor;
+import com.atypon.decentraldbcluster.query.base.Query;
+import com.atypon.decentraldbcluster.query.index.IndexQueryBuilder;
 import com.atypon.decentraldbcluster.services.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,36 +15,43 @@ import org.springframework.web.bind.annotation.*;
 public class IndexController {
 
     private final UserDetails userDetails;
-    private final DocumentIndexService documentIndexService;
-    private final FileSystemService fileSystemService;
-
+    private final QueryExecutor queryExecutor;
 
     @Autowired
-    public IndexController(UserDetails userDetails, DocumentIndexService documentIndexService, FileSystemService fileSystemService) {
+    public IndexController(UserDetails userDetails, QueryExecutor queryExecutor) {
         this.userDetails = userDetails;
-        this.documentIndexService = documentIndexService;
-        this.fileSystemService = fileSystemService;
+        this.queryExecutor = queryExecutor;
     }
 
-    @PostMapping("{database}/{collection}/createIndex/{field}")
+    @PostMapping("createIndex/{database}/{collection}/{field}")
     public void createIndex(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String field) throws Exception {
 
-        String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
+        IndexQueryBuilder builder = new IndexQueryBuilder();
 
-        // TODO: handle field not exists
-        documentIndexService.createIndex(collectionPath, field);
+        Query query = builder
+                .withOriginator( userDetails.getUserId(request) )
+                .withDatabase(database)
+                .withCollection(collection)
+                .createIndex(field)
+                .build();
+
+        queryExecutor.exec(query);
         BroadcastService.doBroadcast(request, "createIndex/" + database + "/" + collection + "/" + field, null, HttpMethod.POST);
     }
 
-    @DeleteMapping("{database}/{collection}/deleteIndex/{field}")
+    @DeleteMapping("dropIndex/{database}/{collection}/{field}")
     public void deleteIndex(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String field) throws Exception {
 
-        String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
-        String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
+        IndexQueryBuilder builder = new IndexQueryBuilder();
 
-        fileSystemService.deleteFile(indexPath);
+        Query query = builder
+                .withOriginator( userDetails.getUserId(request) )
+                .withDatabase(database)
+                .withCollection(collection)
+                .dropIndex(field)
+                .build();
+
+        queryExecutor.exec(query);
         BroadcastService.doBroadcast(request, "dropIndex/" + database + "/" + collection + "/" + field, null, HttpMethod.DELETE);
     }
 

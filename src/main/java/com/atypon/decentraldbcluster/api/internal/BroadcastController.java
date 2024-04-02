@@ -2,15 +2,17 @@ package com.atypon.decentraldbcluster.api.internal;
 
 import com.atypon.decentraldbcluster.affinity.AffinityLoadBalancer;
 import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.query.QueryExecutor;
+import com.atypon.decentraldbcluster.query.base.Query;
+import com.atypon.decentraldbcluster.query.collections.CollectionQueryBuilder;
+import com.atypon.decentraldbcluster.query.databases.DatabaseQueryBuilder;
+import com.atypon.decentraldbcluster.query.index.IndexQueryBuilder;
 import com.atypon.decentraldbcluster.services.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/internal/api/broadcast")
@@ -19,14 +21,18 @@ public class BroadcastController {
 
     private final ObjectMapper mapper;
     private final UserDetails userDetails;
-    private final DocumentService documentService;
+    private final QueryExecutor queryExecutor;
+    private final DocumentReaderService documentService;
     private final FileSystemService fileSystemService;
     private final AffinityLoadBalancer affinityLoadBalancer;
     private final DocumentIndexService documentIndexService;
 
+
     @Autowired
-    public BroadcastController(UserDetails userDetails, FileSystemService fileSystemService, DocumentIndexService documentIndexService,
-                               DocumentService documentService, ObjectMapper mapper, AffinityLoadBalancer affinityLoadBalancer) {
+    public BroadcastController(UserDetails userDetails, QueryExecutor queryExecutor, FileSystemService fileSystemService,
+                               DocumentIndexService documentIndexService, DocumentReaderService documentService, ObjectMapper mapper,
+                               AffinityLoadBalancer affinityLoadBalancer) {
+        this.queryExecutor = queryExecutor;
         this.mapper = mapper;
         this.userDetails = userDetails;
         this.documentService = documentService;
@@ -35,57 +41,70 @@ public class BroadcastController {
         this.affinityLoadBalancer = affinityLoadBalancer;
     }
 
-    @PostMapping("/createDB/{database}")
-    public void createDatabase(HttpServletRequest request, @PathVariable String database) throws IOException {
+    //--------------- Database Broadcast
 
-        String rootDirectory = PathConstructor.getRootDirectory();
-        String userDirectory = userDetails.getUserDirectory(request);
+    @PostMapping("createDB/{database}")
+    public void createDatabase(HttpServletRequest request, @PathVariable String database) throws Exception {
 
-        String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
-        fileSystemService.createDirectory(databasePath);
+        DatabaseQueryBuilder builder = new DatabaseQueryBuilder();
 
-    }
+        Query query = builder
+                .withOriginator( userDetails.getUserId(request) )
+                .createDatabase(database)
+                .build();
 
-    @DeleteMapping("/dropDB/{database}")
-    public void deleteDatabase(HttpServletRequest request, @PathVariable String database) throws IOException {
-
-        String rootDirectory = PathConstructor.getRootDirectory();
-        String userDirectory = userDetails.getUserDirectory(request);
-
-        String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
-        fileSystemService.deleteDirectory( databasePath);
+        queryExecutor.exec(query);
 
     }
 
+    @DeleteMapping("dropDB/{database}")
+    public void deleteDatabase(HttpServletRequest request, @PathVariable String database) throws Exception {
+
+        DatabaseQueryBuilder builder = new DatabaseQueryBuilder();
+
+        Query query = builder
+                .withOriginator( userDetails.getUserId(request) )
+                .dropDatabase(database)
+                .build();
+
+        queryExecutor.exec(query);
+
+    }
+
+    //--------------- Collection Broadcast
     @PostMapping("createCollection/{database}/{collection}")
     public void createCollection(HttpServletRequest request,
                                  @PathVariable String database,
                                  @PathVariable String collection,
                                  @RequestBody JsonNode schema) throws Exception {
 
-        String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
+        CollectionQueryBuilder builder = new CollectionQueryBuilder();
 
-        fileSystemService.createDirectory( Paths.get(collectionPath, "documents").toString() );
-        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "system_generated_indexes").toString() );
-        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "user_generated_indexes").toString() );
+        Query query = builder.withOriginator( userDetails.getUserId(request) )
+                .withDatabase(database)
+                .createCollection(collection)
+                .withSchema(schema)
+                .build();
 
-        fileSystemService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
-
-        documentIndexService.createSystemIdIndex(collectionPath);
+        queryExecutor.exec(query);
     }
 
     @DeleteMapping("dropCollection/{database}/{collection}")
     public void deleteCollection(HttpServletRequest request,
                                  @PathVariable String database,
-                                 @PathVariable String collection) throws IOException {
+                                 @PathVariable String collection) throws Exception {
 
-        String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
+        CollectionQueryBuilder builder = new CollectionQueryBuilder();
 
-        fileSystemService.deleteDirectory(collectionPath);
+        Query query = builder.withOriginator(userDetails.getUserId(request))
+                .withDatabase(database)
+                .dropCollection(collection)
+                .build();
 
+        queryExecutor.exec(query);
     }
+
+    //--------------- Document Broadcast
 
     @PostMapping("addDocument/{database}/{collection}")
     public Document addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody Document document) throws Exception {
@@ -116,7 +135,6 @@ public class BroadcastController {
 
     }
 
-    //No optimistic locking
     @PutMapping("updateDocument/{database}/{collection}/{documentId}")
     public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestBody JsonNode requestBody) throws Exception {
 
@@ -135,24 +153,35 @@ public class BroadcastController {
         return document;
     }
 
+
+    //--------------- Index Broadcast
+
     @PostMapping("createIndex/{database}/{collection}/{field}")
     public void createIndex(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String field) throws Exception {
 
-        String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
+        IndexQueryBuilder builder = new IndexQueryBuilder();
 
-        // TODO: handle field not exists
-        documentIndexService.createIndex(collectionPath, field);
+        Query query = builder.withOriginator( userDetails.getUserId(request) )
+                .withDatabase(database)
+                .withCollection(collection)
+                .createIndex(field)
+                .build();
+
+        queryExecutor.exec(query);
     }
 
     @DeleteMapping("dropIndex/{database}/{collection}/{field}")
     public void deleteIndex(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String field) throws Exception {
 
-        String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
-        String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
+        IndexQueryBuilder builder = new IndexQueryBuilder();
 
-        fileSystemService.deleteFile(indexPath);
+        Query query = builder.withOriginator( userDetails.getUserId(request) )
+                .withDatabase(database)
+                .withCollection(collection)
+                .dropIndex(field)
+                .build();
+
+        queryExecutor.exec(query);
     }
 
 }

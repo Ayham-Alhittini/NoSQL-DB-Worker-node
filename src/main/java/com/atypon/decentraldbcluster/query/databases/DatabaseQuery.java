@@ -5,7 +5,7 @@ import com.atypon.decentraldbcluster.query.base.Query;
 public class DatabaseQuery extends Query {
     private DatabaseAction action;
 
-    public DatabaseAction getAction() {
+    public DatabaseAction getDatabaseAction() {
         return action;
     }
 

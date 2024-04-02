@@ -1,32 +1,40 @@
 package com.atypon.decentraldbcluster.query.documents;
 
+import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.base.QueryBuilder;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class DocumentQueryBuilder implements QueryBuilder {
     private final DocumentQuery query = new DocumentQuery();
 
 
-    public DocumentQueryBuilder withCondition(String condition) {
+    public DocumentQueryBuilder withId(String documentId) {
+        query.setDocumentId(documentId);
+        return this;
+    }
+
+    public DocumentQueryBuilder withCondition(JsonNode condition) {
         query.setCondition(condition);
         return this;
     }
 
-    public DocumentQueryBuilder addDocument(String json) {
+    public DocumentQueryBuilder addDocument(JsonNode content) {
         query.setDocumentAction(DocumentAction.ADD);
-        query.setContent(json);
+        query.setContent(content);
         return this;
     }
 
     //Rely on condition
-    public DocumentQueryBuilder deleteDocuments() {
+    public DocumentQueryBuilder deleteDocument(Document document) {
         query.setDocumentAction(DocumentAction.DELETE);
+        query.setDocument(document);
         return this;
     }
 
-    //Rely on condition
-    public DocumentQueryBuilder updateDocuments(String json) {
+    public DocumentQueryBuilder updateDocument(Document document, JsonNode newContent) {
         query.setDocumentAction(DocumentAction.UPDATE);
-        query.setNewContent(json);
+        query.setDocument(document);
+        query.setNewContent(newContent);
         return this;
     }
 

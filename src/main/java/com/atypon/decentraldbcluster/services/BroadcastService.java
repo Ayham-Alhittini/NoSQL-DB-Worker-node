@@ -12,12 +12,12 @@ public class BroadcastService {
     private static final String  prefixBroadcastUrl = "/internal/api/broadcast/";
 
 
-    public static void doBroadcast(HttpServletRequest request, String endpoint, JsonNode body, HttpMethod method) {
+    public static void doBroadcast(HttpServletRequest request, String endpoint, Object body, HttpMethod method) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
-        HttpEntity<JsonNode> requestEntity = new HttpEntity<>(body, headers);
+        HttpEntity<Object> requestEntity = new HttpEntity<>(body, headers);
 
         for (Integer port: NodeConfiguration.getOtherNodesPort()) {
 

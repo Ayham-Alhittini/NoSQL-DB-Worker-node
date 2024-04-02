@@ -1,17 +1,14 @@
 package com.atypon.decentraldbcluster.api.external;
 
+import com.atypon.decentraldbcluster.query.QueryExecutor;
+import com.atypon.decentraldbcluster.query.base.Query;
+import com.atypon.decentraldbcluster.query.databases.DatabaseQueryBuilder;
 import com.atypon.decentraldbcluster.services.BroadcastService;
-import com.atypon.decentraldbcluster.services.FileSystemService;
-import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/database")
@@ -20,46 +17,52 @@ public class DatabaseController {
 
 
     private final UserDetails userDetails;
-    private final FileSystemService fileSystemService;
+    private final QueryExecutor queryExecutor;
 
     @Autowired
-    public DatabaseController(UserDetails userDetails, FileSystemService fileSystemService) {
+    public DatabaseController(UserDetails userDetails, QueryExecutor queryExecutor) {
         this.userDetails = userDetails;
-        this.fileSystemService = fileSystemService;
+        this.queryExecutor = queryExecutor;
     }
 
-    @PostMapping("/create/{database}")
-    public void createDatabase(HttpServletRequest request, @PathVariable String database) throws IOException {
+    @PostMapping("createDB/{database}")
+    public void createDatabase(HttpServletRequest request, @PathVariable String database) throws Exception {
 
-        String rootDirectory = PathConstructor.getRootDirectory();
-        String userDirectory = userDetails.getUserDirectory(request);
+        DatabaseQueryBuilder builder = new DatabaseQueryBuilder();
 
-        String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
-        fileSystemService.createDirectory(databasePath);
+        Query query = builder
+                .withOriginator(userDetails.getUserId(request))
+                .createDatabase(database)
+                .build();
 
+        queryExecutor.exec(query);
         BroadcastService.doBroadcast(request, "createDB/" + database, null, HttpMethod.POST);
     }
 
-    @DeleteMapping("/delete/{database}")
-    public void deleteDatabase(HttpServletRequest request, @PathVariable String database) throws IOException {
+    @DeleteMapping("dropDB/{database}")
+    public void deleteDatabase(HttpServletRequest request, @PathVariable String database) throws Exception {
 
-        String rootDirectory = PathConstructor.getRootDirectory();
-        String userDirectory = userDetails.getUserDirectory(request);
+        DatabaseQueryBuilder builder = new DatabaseQueryBuilder();
 
-        String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
-        fileSystemService.deleteDirectory( databasePath);
+        Query query = builder
+                .withOriginator(userDetails.getUserId(request))
+                .dropDatabase(database)
+                .build();
 
+        queryExecutor.exec(query);
         BroadcastService.doBroadcast(request, "dropDB/" + database, null, HttpMethod.DELETE);
     }
 
     @GetMapping("/showDbs")
-    public List<String> showDbs(HttpServletRequest request) {
+    public Object showDbs(HttpServletRequest request) throws Exception {
 
-        String rootDirectory = PathConstructor.getRootDirectory();
-        String userDirectory = userDetails.getUserDirectory(request);
+        DatabaseQueryBuilder builder = new DatabaseQueryBuilder();
 
-        String userPath = Paths.get(rootDirectory, userDirectory).toString();
+        Query query = builder
+                .withOriginator(userDetails.getUserId(request))
+                .showDbs()
+                .build();
 
-        return fileSystemService.listAllDirectories(userPath);
+        return queryExecutor.exec(query);
     }
 }

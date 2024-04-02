@@ -1,12 +1,16 @@
 package com.atypon.decentraldbcluster.query.documents;
 
+import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.base.Query;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class DocumentQuery extends Query {
+    private String documentId;
+    private JsonNode content;
+    private Document document;
+    private JsonNode condition;
+    private JsonNode newContent;
     private DocumentAction documentAction;
-    private String condition;
-    private String content;
-    private String newContent;
 
     //------------------------- Getter And Setter
 
@@ -18,28 +22,44 @@ public class DocumentQuery extends Query {
         this.documentAction = documentAction;
     }
 
-    public String getCondition() {
+    public JsonNode getCondition() {
         return condition;
     }
 
-    public void setCondition(String condition) {
+    public void setCondition(JsonNode condition) {
         this.condition = condition;
     }
 
-    public String getContent() {
+    public JsonNode getContent() {
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(JsonNode content) {
         this.content = content;
     }
 
-    public String getNewContent() {
+    public JsonNode getNewContent() {
         return newContent;
     }
 
-    public void setNewContent(String newContent) {
+    public void setNewContent(JsonNode newContent) {
         this.newContent = newContent;
+    }
+
+    public Document getDocument() {
+        return document;
+    }
+
+    public void setDocument(Document document) {
+        this.document = document;
+    }
+
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
     }
 
     @Override

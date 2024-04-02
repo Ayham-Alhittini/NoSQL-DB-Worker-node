@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.services;
 
-import com.atypon.decentraldbcluster.secuirty.JwtService;
+import com.atypon.decentraldbcluster.secuirty.JwtUtil;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserDetails {
-    private final JwtService jwtService;
+    private final JwtUtil jwtService;
 
     @Autowired
-    public UserDetails(JwtService jwtService) {
+    public UserDetails(JwtUtil jwtService) {
         this.jwtService = jwtService;
     }
 

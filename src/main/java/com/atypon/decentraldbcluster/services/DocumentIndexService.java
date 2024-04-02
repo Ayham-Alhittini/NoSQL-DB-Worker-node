@@ -19,17 +19,17 @@ public class DocumentIndexService {
 
     private final ObjectMapper mapper;
     private final IndexManager indexManager;
-    private final DocumentService documentService;
+    private final DocumentReaderService documentReaderService;
 
     @Autowired
-    public DocumentIndexService(DocumentService documentService, IndexManager indexManager, ObjectMapper mapper) {
-        this.documentService = documentService;
-        this.indexManager = indexManager;
+    public DocumentIndexService(DocumentReaderService documentService, IndexManager indexManager, ObjectMapper mapper) {
         this.mapper = mapper;
+        this.indexManager = indexManager;
+        this.documentReaderService = documentService;
     }
 
     public void createIndex(String collectionPath, String field) throws Exception {
-        List<Document> documents = documentService.readDocumentsByCollectionPath(collectionPath);
+        List<Document> documents = documentReaderService.readDocumentsByCollectionPath(collectionPath);
         String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
         Index index = new Index();
         for (Document document : documents) {
@@ -41,7 +41,7 @@ public class DocumentIndexService {
     }
 
     public void createSystemIdIndex(String collectionPath) throws Exception {
-        List<Document> documents = documentService.readDocumentsByCollectionPath(collectionPath);
+        List<Document> documents = documentReaderService.readDocumentsByCollectionPath(collectionPath);
         String indexPath = PathConstructor.constructSystemGeneratedIndexPath(collectionPath);
         Index index = new Index();
         for (Document document : documents) {
@@ -53,7 +53,7 @@ public class DocumentIndexService {
     }
 
     public void deleteDocumentFromIndexes(String documentPointer) throws Exception {
-        Document document = documentService.readDocument(documentPointer);
+        Document document = documentReaderService.readDocument(documentPointer);
         String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(documentPointer);
         List<String> indexedFields = getIndexedFields(document.getData(), collectionPath);
 

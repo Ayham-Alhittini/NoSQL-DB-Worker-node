@@ -1,16 +1,15 @@
 package com.atypon.decentraldbcluster.api.external;
 
-import com.atypon.decentraldbcluster.services.*;
-import com.atypon.decentraldbcluster.validation.SchemaValidator;
+import com.atypon.decentraldbcluster.query.QueryExecutor;
+import com.atypon.decentraldbcluster.query.base.Query;
+import com.atypon.decentraldbcluster.query.collections.CollectionQueryBuilder;
+import com.atypon.decentraldbcluster.services.BroadcastService;
+import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/collection")
@@ -18,63 +17,61 @@ import java.util.List;
 public class CollectionController {
 
     private final UserDetails userDetails;
-    private final SchemaValidator schemaValidator;
-    private final DocumentIndexService documentIndexService;
-    private final FileSystemService fileSystemService;
+    private final QueryExecutor queryExecutor;
 
     @Autowired
-    public CollectionController(UserDetails userDetails, SchemaValidator schemaValidator,
-                                DocumentIndexService documentIndexService, FileSystemService fileSystemService) {
+    public CollectionController(UserDetails userDetails, QueryExecutor queryExecutor) {
         this.userDetails = userDetails;
-        this.schemaValidator = schemaValidator;
-        this.documentIndexService = documentIndexService;
-        this.fileSystemService = fileSystemService;
+        this.queryExecutor = queryExecutor;
     }
 
-    //TODO: create schema less collection
-    @PostMapping("{database}/create/{collection}")
-    public void createCollection(HttpServletRequest request,
-                                              @PathVariable String database,
-                                              @PathVariable String collection,
-                                              @RequestBody JsonNode schema) throws Exception {
+    @PostMapping("createCollection/{database}/{collection}")
+    public void createCollection(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode schema) throws Exception {
 
-        schemaValidator.validateSchemaDataTypes(schema);
+        CollectionQueryBuilder builder = new CollectionQueryBuilder();
 
-        String userDirectory = userDetails.getUserDirectory(request);
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
+        Query query = builder
+                .withOriginator(userDetails.getUserId(request))
+                .withDatabase(database)
+                .createCollection(collection)
+                .withSchema(schema)
+                .build();
 
-        fileSystemService.createDirectory( Paths.get(collectionPath, "documents").toString() );
-        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "system_generated_indexes").toString() );
-        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "user_generated_indexes").toString() );
-
-        fileSystemService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
-
-        documentIndexService.createSystemIdIndex(collectionPath);
-
+        queryExecutor.exec(query);
         BroadcastService.doBroadcast(request, "createCollection/" + database + "/" + collection, schema, HttpMethod.POST);
-
     }
 
-    @DeleteMapping("{database}/delete/{collection}")
-    public void deleteCollection(HttpServletRequest request,
-                                              @PathVariable String database,
-                                              @PathVariable String collection) throws IOException {
+    @DeleteMapping("dropCollection/{database}/{collection}")
+    public void deleteCollection(HttpServletRequest request, @PathVariable String database, @PathVariable String collection) throws Exception {
 
-        String userDirectory = userDetails.getUserDirectory(request);
+        CollectionQueryBuilder builder = new CollectionQueryBuilder();
 
-        String collectionPath = PathConstructor.constructCollectionPath(userDirectory, database, collection);
-        fileSystemService.deleteDirectory(collectionPath);
+        Query query = builder
+                .withOriginator(userDetails.getUserId(request))
+                .withDatabase(database)
+                .dropCollection(collection)
+                .build();
+
+        queryExecutor.exec(query);
         BroadcastService.doBroadcast(request, "dropCollection/" + database + "/" + collection, null, HttpMethod.DELETE);
     }
 
-    @GetMapping("{database}/showCollections")
-    public List<String> showCollections(HttpServletRequest request, @PathVariable String database) {
+    @GetMapping("showCollections/{database}")
+    public Object showCollections(HttpServletRequest request, @PathVariable String database) throws Exception {
 
-        String rootDirectory = PathConstructor.getRootDirectory();
-        String userDirectory = userDetails.getUserId(request);
+        CollectionQueryBuilder builder = new CollectionQueryBuilder();
 
-        String databasePath = Paths.get(rootDirectory, userDirectory, database).toString();
+        Query query = builder
+                .withOriginator(userDetails.getUserId(request))
+                .withDatabase(database)
+                .showCollections()
+                .build();
 
-        return fileSystemService.listAllDirectories(databasePath);
+        return queryExecutor.exec(query);
     }
 }
+
+
+
+
+//TODO: create schema less collection
