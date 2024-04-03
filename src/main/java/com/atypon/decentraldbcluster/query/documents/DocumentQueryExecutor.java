@@ -84,7 +84,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
 
 
     private Document handleUpdateDocument(DocumentQuery query) throws Exception {
-        Document document = query.getDocument();
+        Document document = new Document(query.getDocument());//clone the document to not affect the document at the controller because it will be broadcast with changes
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
 

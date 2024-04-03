@@ -35,7 +35,8 @@ public class NodeAffinityFilter implements Filter {
         String path = request.getRequestURI();
         String[] pathParts = path.split("/");
 
-        if (pathParts.length < 5 || (!"updateDocument".equals(pathParts[3]) && !"deleteDocument".equals(pathParts[3]) ) ) {
+        //
+        if (pathParts.length < 5) {
             chain.doFilter(request, response);
             return;
         }
@@ -52,7 +53,7 @@ public class NodeAffinityFilter implements Filter {
             Document document = documentService.readDocument(documentPath);
             if (!isAssignedNode(document)) {
 
-                String redirectUrl = NodeConfiguration.getNodeAddress(document.getAffinityPort());
+                String redirectUrl = "http://localhost:" + document.getAffinityPort();
                 redirectUrl += path;
                 redirectUrl += assignDocumentVersionParam(request);
 
@@ -68,10 +69,11 @@ public class NodeAffinityFilter implements Filter {
         }
     }
 
-    boolean isAssignedNode(Document document) {
+    private boolean isAssignedNode(Document document) {
         return document.getAffinityPort() == NodeConfiguration.getCurrentNodePort();
     }
-    String assignDocumentVersionParam(HttpServletRequest request) {
+
+    private String assignDocumentVersionParam(HttpServletRequest request) {
         String paramName = "expectedVersion";
         String paramValue = request.getParameter(paramName);
 

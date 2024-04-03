@@ -9,7 +9,7 @@ import java.util.UUID;
 public class Document implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    private final String id = UUID.randomUUID().toString();
+    private String id = UUID.randomUUID().toString();
     private JsonNode data;
     private int version = 1;
     private int affinityPort;
@@ -19,6 +19,13 @@ public class Document implements Serializable {
     public Document(JsonNode data, int affinityPort) {
         this.data = data;
         this.affinityPort = affinityPort;
+    }
+
+    public Document(Document src) {
+        this.id = src.id;
+        this.data = src.getData();
+        this.version = src.getVersion();
+        this.affinityPort = src.getAffinityPort();
     }
 
     public String getId() {
