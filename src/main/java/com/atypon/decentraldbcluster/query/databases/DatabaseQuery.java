@@ -3,20 +3,20 @@ package com.atypon.decentraldbcluster.query.databases;
 import com.atypon.decentraldbcluster.query.base.Query;
 
 public class DatabaseQuery extends Query {
-    private DatabaseAction action;
+    private DatabaseAction databaseAction;
 
     public DatabaseAction getDatabaseAction() {
-        return action;
+        return databaseAction;
     }
 
-    public void setAction(DatabaseAction action) {
-        this.action = action;
+    public void setDatabaseAction(DatabaseAction databaseAction) {
+        this.databaseAction = databaseAction;
     }
 
     @Override
     public String toString() {
         return "DatabaseQuery{" +
-                "action=" + action +
+                "action=" + databaseAction +
                 ", originator='" + originator + '\'' +
                 ", database='" + database + '\'' +
                 ", collection='" + collection + '\'' +

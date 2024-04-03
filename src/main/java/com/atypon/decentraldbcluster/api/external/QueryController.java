@@ -27,8 +27,8 @@ public class QueryController {
         this.queryExecutor = queryExecutor;
     }
 
-    @GetMapping("{database}/{collection}/findOne/{documentId}")
-    public Document getData(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
+    @GetMapping("findById/{database}/{collection}/{documentId}")
+    public Document findById(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
 

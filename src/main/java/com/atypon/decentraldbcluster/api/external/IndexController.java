@@ -3,10 +3,10 @@ package com.atypon.decentraldbcluster.api.external;
 import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.index.IndexQueryBuilder;
-import com.atypon.decentraldbcluster.services.*;
+import com.atypon.decentraldbcluster.services.BroadcastService;
+import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -36,7 +36,7 @@ public class IndexController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "createIndex/" + database + "/" + collection + "/" + field, null, HttpMethod.POST);
+        BroadcastService.doBroadcast(request, "index", query);
     }
 
     @DeleteMapping("dropIndex/{database}/{collection}/{field}")
@@ -52,7 +52,7 @@ public class IndexController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "dropIndex/" + database + "/" + collection + "/" + field, null, HttpMethod.DELETE);
+        BroadcastService.doBroadcast(request, "index", query);
     }
 
 }

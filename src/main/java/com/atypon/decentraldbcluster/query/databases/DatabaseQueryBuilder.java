@@ -6,19 +6,19 @@ public class DatabaseQueryBuilder implements QueryBuilder {
     private final DatabaseQuery query = new DatabaseQuery();
 
     public DatabaseQueryBuilder createDatabase(String database) {
-        query.setAction(DatabaseAction.CREATE);
+        query.setDatabaseAction(DatabaseAction.CREATE);
         query.setDatabase(database);
         return this;
     }
 
     public DatabaseQueryBuilder dropDatabase(String database) {
-        query.setAction(DatabaseAction.DROP);
+        query.setDatabaseAction(DatabaseAction.DROP);
         query.setDatabase(database);
         return this;
     }
 
     public DatabaseQueryBuilder showDbs() {
-        query.setAction(DatabaseAction.SHOW);
+        query.setDatabaseAction(DatabaseAction.SHOW);
         return this;
     }
 

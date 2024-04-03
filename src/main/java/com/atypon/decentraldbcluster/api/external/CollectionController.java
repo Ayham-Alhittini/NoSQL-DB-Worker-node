@@ -9,7 +9,6 @@ import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,7 +40,7 @@ public class CollectionController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "createCollection/" + database + "/" + collection, schema, HttpMethod.POST);
+        BroadcastService.doBroadcast(request, "collection", query);
     }
 
     @DeleteMapping("dropCollection/{database}/{collection}")
@@ -56,7 +55,7 @@ public class CollectionController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "dropCollection/" + database + "/" + collection, null, HttpMethod.DELETE);
+        BroadcastService.doBroadcast(request, "collection", query);
     }
 
     @GetMapping("showCollections/{database}")

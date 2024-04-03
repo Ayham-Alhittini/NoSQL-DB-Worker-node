@@ -1,7 +1,6 @@
 package com.atypon.decentraldbcluster.services;
 
 import com.atypon.decentraldbcluster.config.NodeConfiguration;
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -12,7 +11,7 @@ public class BroadcastService {
     private static final String  prefixBroadcastUrl = "/internal/api/broadcast/";
 
 
-    public static void doBroadcast(HttpServletRequest request, String endpoint, Object body, HttpMethod method) {
+    public static void doBroadcast(HttpServletRequest request, String endpoint, Object body) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -23,7 +22,7 @@ public class BroadcastService {
 
             String requestUrl = NodeConfiguration.getNodeAddress(port) + prefixBroadcastUrl +  endpoint;
 
-            restTemplate.exchange( requestUrl , method, requestEntity, Object.class);
+            restTemplate.exchange( requestUrl , HttpMethod.POST, requestEntity, Void.class);
         }
     }
 }

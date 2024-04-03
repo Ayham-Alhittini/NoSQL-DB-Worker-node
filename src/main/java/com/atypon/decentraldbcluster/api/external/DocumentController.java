@@ -4,13 +4,13 @@ import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.lock.OptimisticLocking;
 import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
+import com.atypon.decentraldbcluster.query.documents.DocumentQuery;
 import com.atypon.decentraldbcluster.query.documents.DocumentQueryBuilder;
 import com.atypon.decentraldbcluster.services.BroadcastService;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,19 +29,20 @@ public class DocumentController {
     }
 
     @PostMapping("addDocument/{database}/{collection}")
-    public Document addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode documentData) throws Exception {
+    public Document addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode documentContent) throws Exception {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
-        Query query = builder
+        DocumentQuery query = builder
                 .withOriginator(userDetails.getUserId(request))
                 .withDatabase(database)
                 .withCollection(collection)
-                .addDocument(documentData)
+                .addDocument(documentContent)
                 .build();
 
         Document addedDocument = queryExecutor.exec(query, Document.class);
 
-        BroadcastService.doBroadcast(request, "addDocument/" + database + "/" + collection, addedDocument, HttpMethod.POST);
+        query.setDocument(addedDocument);
+        BroadcastService.doBroadcast(request, "document", query);
         return addedDocument;
     }
 
@@ -60,7 +61,7 @@ public class DocumentController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "deleteDocument/" + database + "/" + collection + "/" + documentId, null, HttpMethod.DELETE);
+        BroadcastService.doBroadcast(request, "document", query);
     }
 
 
@@ -82,7 +83,7 @@ public class DocumentController {
             Document updatedDocument = queryExecutor.exec(query, Document.class);
             optimisticLocking.clearDocumentVersion(documentId);// To prevent storing unneeded document
 
-            BroadcastService.doBroadcast(request, "updateDocument/" + database + "/" + collection + "/" + documentId, requestBody, HttpMethod.PUT);
+            BroadcastService.doBroadcast(request, "document", query);
             return updatedDocument;
         }
         throw new IllegalArgumentException("Conflict");

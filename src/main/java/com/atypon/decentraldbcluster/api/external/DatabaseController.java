@@ -8,7 +8,6 @@ import com.atypon.decentraldbcluster.services.ListCaster;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +16,6 @@ import java.util.List;
 @RequestMapping("/api/database")
 @CrossOrigin("*")
 public class DatabaseController {
-
 
     private final UserDetails userDetails;
     private final QueryExecutor queryExecutor;
@@ -39,7 +37,7 @@ public class DatabaseController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "createDB/" + database, null, HttpMethod.POST);
+        BroadcastService.doBroadcast(request, "database", query);
     }
 
     @DeleteMapping("dropDB/{database}")
@@ -53,7 +51,7 @@ public class DatabaseController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "dropDB/" + database, null, HttpMethod.DELETE);
+        BroadcastService.doBroadcast(request, "database", query);
     }
 
     @GetMapping("/showDbs")

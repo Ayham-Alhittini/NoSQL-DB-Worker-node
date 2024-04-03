@@ -51,7 +51,10 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
     }
 
     private Document handleAddDocument(DocumentQuery query) throws Exception {
-        Document document = new Document(query.getContent(), affinityLoadBalancer.getNextAffinityNodePort());
+
+        Document queryDocument = query.getDocument();
+
+        Document document = queryDocument != null ? queryDocument : new Document(query.getContent(), affinityLoadBalancer.getNextAffinityNodePort());
 
         String collectionPath = PathConstructor
                 .constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
