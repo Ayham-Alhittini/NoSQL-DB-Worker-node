@@ -48,4 +48,13 @@ public class QueryExecutor implements Executable<Query> {
 
         throw new UnsupportedOperationException("Unexpected query type, please attach it to the factory at the QueryExecutor if new Query added");
     }
+
+    public <R> R exec(Query query, Class<R> returnType) throws Exception {
+        Object result = exec(query);
+
+        if (returnType.isInstance(result))
+            return returnType.cast(result);
+        throw new ClassCastException("The result cannot be cast to " + returnType.getName());
+    }
+
 }

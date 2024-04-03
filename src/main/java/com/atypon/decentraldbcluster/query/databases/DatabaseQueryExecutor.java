@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Component
 public class DatabaseQueryExecutor implements Executable<DatabaseQuery> {
@@ -30,20 +31,19 @@ public class DatabaseQueryExecutor implements Executable<DatabaseQuery> {
         };
     }
 
-    Object handleCreateDb(DatabaseQuery query) throws IOException {
+    private Void handleCreateDb(DatabaseQuery query) throws IOException {
         String databasePath = Paths.get(rootDirectory, query.getOriginator(), query.getDatabase()).toString();
         fileSystemService.createDirectory(databasePath);
         return null;
     }
 
-    Object handleDropDb(DatabaseQuery query) throws IOException {
+    private Void handleDropDb(DatabaseQuery query) throws IOException {
         String databasePath = Paths.get(rootDirectory, query.getOriginator(), query.getDatabase()).toString();
         fileSystemService.deleteDirectory(databasePath);
         return null;
     }
 
-    Object handleShowDbs(DatabaseQuery query)  {
+    private List<String> handleShowDbs(DatabaseQuery query)  {
         return fileSystemService.listAllDirectories(rootDirectory + "/" + query.getOriginator());
     }
-
 }

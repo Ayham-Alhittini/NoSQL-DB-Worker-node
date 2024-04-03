@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Component
 public class CollectionQueryExecutor implements Executable<CollectionQuery> {
@@ -34,7 +35,7 @@ public class CollectionQueryExecutor implements Executable<CollectionQuery> {
         };
     }
 
-    private Object handleCreateCollection(CollectionQuery query) throws Exception {
+    private Void handleCreateCollection(CollectionQuery query) throws Exception {
 
         schemaValidator.validateSchemaDataTypes(query.getSchema());
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
@@ -50,14 +51,14 @@ public class CollectionQueryExecutor implements Executable<CollectionQuery> {
     }
 
 
-    private Object handleDropCollection(CollectionQuery query) throws IOException {
+    private Void handleDropCollection(CollectionQuery query) throws IOException {
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         fileSystemService.deleteDirectory(collectionPath);
         return null;
     }
 
 
-    private Object handleShowCollections(CollectionQuery query) {
+    private List<String> handleShowCollections(CollectionQuery query) {
         String rootDirectory = PathConstructor.getRootDirectory();
         String databasePath = Paths.get(rootDirectory, query.getOriginator(), query.getDatabase()).toString();
         return fileSystemService.listAllDirectories(databasePath);

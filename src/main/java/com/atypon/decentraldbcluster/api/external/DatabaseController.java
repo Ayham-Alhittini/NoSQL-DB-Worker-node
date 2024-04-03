@@ -4,11 +4,14 @@ import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.databases.DatabaseQueryBuilder;
 import com.atypon.decentraldbcluster.services.BroadcastService;
+import com.atypon.decentraldbcluster.services.ListCaster;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/database")
@@ -54,7 +57,7 @@ public class DatabaseController {
     }
 
     @GetMapping("/showDbs")
-    public Object showDbs(HttpServletRequest request) throws Exception {
+    public List<String> showDbs(HttpServletRequest request) throws Exception {
 
         DatabaseQueryBuilder builder = new DatabaseQueryBuilder();
 
@@ -63,6 +66,7 @@ public class DatabaseController {
                 .showDbs()
                 .build();
 
-        return queryExecutor.exec(query);
+        List<?> rawList = queryExecutor.exec(query, List.class);
+        return ListCaster.castList(rawList, String.class);
     }
 }

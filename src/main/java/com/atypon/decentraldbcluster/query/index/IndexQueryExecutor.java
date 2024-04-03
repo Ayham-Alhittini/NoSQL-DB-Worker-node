@@ -29,13 +29,13 @@ public class IndexQueryExecutor implements Executable<IndexQuery> {
         };
     }
 
-    private Object handleCreateIndex(IndexQuery query) throws Exception {
+    private Void handleCreateIndex(IndexQuery query) throws Exception {
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         documentIndexService.createIndex(collectionPath, query.getField());
         return null;
     }
 
-    private Object handleDropIndex(IndexQuery query) throws IOException {
+    private Void handleDropIndex(IndexQuery query) throws IOException {
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, query.getField());
 

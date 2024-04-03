@@ -4,12 +4,15 @@ import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.collections.CollectionQueryBuilder;
 import com.atypon.decentraldbcluster.services.BroadcastService;
+import com.atypon.decentraldbcluster.services.ListCaster;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/collection")
@@ -57,7 +60,7 @@ public class CollectionController {
     }
 
     @GetMapping("showCollections/{database}")
-    public Object showCollections(HttpServletRequest request, @PathVariable String database) throws Exception {
+    public List<String> showCollections(HttpServletRequest request, @PathVariable String database) throws Exception {
 
         CollectionQueryBuilder builder = new CollectionQueryBuilder();
 
@@ -67,7 +70,8 @@ public class CollectionController {
                 .showCollections()
                 .build();
 
-        return queryExecutor.exec(query);
+        List<?> rawList = queryExecutor.exec(query, List.class);
+        return ListCaster.castList(rawList, String.class);
     }
 }
 

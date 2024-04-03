@@ -50,7 +50,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
         };
     }
 
-    private Object handleAddDocument(DocumentQuery query) throws Exception {
+    private Document handleAddDocument(DocumentQuery query) throws Exception {
         Document document = new Document(query.getContent(), affinityLoadBalancer.getNextAffinityNodePort());
 
         String collectionPath = PathConstructor
@@ -66,7 +66,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
     }
 
 
-    private Object handleDeleteDocument(DocumentQuery query) throws Exception {
+    private Void handleDeleteDocument(DocumentQuery query) throws Exception {
 
         String collectionPath = PathConstructor
                 .constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
@@ -80,7 +80,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
     }
 
 
-    private Object handleUpdateDocument(DocumentQuery query) throws Exception {
+    private Document handleUpdateDocument(DocumentQuery query) throws Exception {
         Document document = query.getDocument();
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());

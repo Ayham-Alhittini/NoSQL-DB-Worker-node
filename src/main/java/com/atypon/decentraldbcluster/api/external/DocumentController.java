@@ -29,7 +29,7 @@ public class DocumentController {
     }
 
     @PostMapping("addDocument/{database}/{collection}")
-    public Object addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode documentData) throws Exception {
+    public Document addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode documentData) throws Exception {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
         Query query = builder
@@ -39,7 +39,7 @@ public class DocumentController {
                 .addDocument(documentData)
                 .build();
 
-        var addedDocument = queryExecutor.exec(query);
+        Document addedDocument = queryExecutor.exec(query, Document.class);
 
         BroadcastService.doBroadcast(request, "addDocument/" + database + "/" + collection, addedDocument, HttpMethod.POST);
         return addedDocument;
@@ -65,7 +65,7 @@ public class DocumentController {
 
 
     @PutMapping("updateDocument/{database}/{collection}/{documentId}")
-    public Object updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestParam int expectedVersion, @RequestBody JsonNode requestBody) throws Exception {
+    public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestParam int expectedVersion, @RequestBody JsonNode requestBody) throws Exception {
 
         Document document = (Document) request.getAttribute("document");
 
@@ -79,11 +79,11 @@ public class DocumentController {
                     .updateDocument(document, requestBody)
                     .build();
 
-            var result = queryExecutor.exec(query);
+            Document updatedDocument = queryExecutor.exec(query, Document.class);
             optimisticLocking.clearDocumentVersion(documentId);// To prevent storing unneeded document
 
             BroadcastService.doBroadcast(request, "updateDocument/" + database + "/" + collection + "/" + documentId, requestBody, HttpMethod.PUT);
-            return result;
+            return updatedDocument;
         }
         throw new IllegalArgumentException("Conflict");
     }
