@@ -46,6 +46,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
             case ADD -> handleAddDocument(query);
             case DELETE -> handleDeleteDocument(query);
             case UPDATE -> handleUpdateDocument(query);
+            case REPLACE -> handleReplaceDocument(query);
             case SELECT -> handleSelectDocuments(query);
         };
     }
@@ -90,15 +91,35 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
 
         documentValidator.doesDocumentMatchSchema(query.getNewContent(), collectionPath, false);
 
-        JsonNode updatedDocumentData = documentReaderService.patchDocument(query.getNewContent(), document.getData());
-        document.setData(updatedDocumentData);
+        documentIndexService.updateIndexes(document, query.getNewContent(), collectionPath);
+
+        JsonNode updatedDocumentData = documentReaderService.patchDocument(query.getNewContent(), document.getContent());
+        document.setContent(updatedDocumentData);
         document.incrementVersion();
 
-        documentIndexService.updateIndexes(document, query.getNewContent(), collectionPath);
         fileSystemService.saveFile(mapper.valueToTree(document).toPrettyString(), documentPath);
 
         return document;
     }
+
+    private Document handleReplaceDocument(DocumentQuery query) throws Exception {
+        Document document = new Document(query.getDocument());//clone the document to not affect the document at the controller because it will be broadcast with changes
+        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
+
+        documentValidator.doesDocumentMatchSchema(query.getNewContent(), collectionPath, true);
+
+        documentIndexService.replaceIndexes(document, query.getNewContent(), collectionPath);
+
+        document.setContent(query.getNewContent());
+        document.incrementVersion();
+
+        fileSystemService.saveFile(mapper.valueToTree(document).toPrettyString(), documentPath);
+
+        return document;
+    }
+
+
     private Object handleSelectDocuments(DocumentQuery query) throws Exception {
 
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());

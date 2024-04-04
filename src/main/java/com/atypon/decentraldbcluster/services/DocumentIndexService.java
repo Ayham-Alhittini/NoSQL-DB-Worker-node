@@ -32,11 +32,16 @@ public class DocumentIndexService {
         List<Document> documents = documentReaderService.readDocumentsByCollectionPath(collectionPath);
         String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
         Index index = new Index();
+        boolean findAtLeastOneDocumentWithTheFiled = false;
         for (Document document : documents) {
             String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
-            JsonNode key = document.getData().get(field);
-            index.add(key, documentPath);
+            if (document.getContent().has(field)) {
+                JsonNode key = document.getContent().get(field);
+                index.addPointer(key, documentPath);
+                findAtLeastOneDocumentWithTheFiled = true;
+            }
         }
+        if (!findAtLeastOneDocumentWithTheFiled) throw new IllegalArgumentException("Field not exists");
         indexManager.saveIndex(index, indexPath);
     }
 
@@ -47,7 +52,7 @@ public class DocumentIndexService {
         for (Document document : documents) {
             String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
             JsonNode key = parseStringToJsonNode(document.getId());
-            index.add(key, documentPath);
+            index.addPointer(key, documentPath);
         }
         indexManager.saveIndex(index, indexPath);
     }
@@ -55,11 +60,11 @@ public class DocumentIndexService {
     public void deleteDocumentFromIndexes(String documentPointer) throws Exception {
         Document document = documentReaderService.readDocument(documentPointer);
         String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(documentPointer);
-        List<String> indexedFields = getIndexedFields(document.getData(), collectionPath);
+        List<String> indexedFields = getIndexedFields(document.getContent(), collectionPath);
 
         for (String field : indexedFields) {
             String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
-            indexManager.removeFromIndex(indexPath, document.getData().get(field), documentPointer);
+            indexManager.removeFromIndex(indexPath, document.getContent().get(field), documentPointer);
         }
 
         // System-generated index update
@@ -72,25 +77,45 @@ public class DocumentIndexService {
         for (String field : indexedFields) {
             String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
             Index index = indexManager.loadIndex(indexPath);
-            JsonNode oldKey = document.getData().get(field);
+            JsonNode oldKey = document.getContent().get(field);
             JsonNode newKey = requestBody.get(field);
             String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
 
             if (!oldKey.equals(newKey)) { // Only update if the key has changed
-                index.remove(oldKey, documentPath);
-                index.add(newKey, documentPath);
+                index.removePointer(oldKey, documentPath);
+                index.addPointer(newKey, documentPath);
                 indexManager.saveIndex(index, indexPath);
             }
         }
     }
 
+    public void replaceIndexes(Document document, JsonNode newContent, String collectionPath) throws Exception {
+        List<String> indexedFields = getIndexedFields(document.getContent(), collectionPath);
+        for (String indexedField : indexedFields) {
+            String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, indexedField);
+            Index index = indexManager.loadIndex(indexPath);
+
+            String pointer = PathConstructor.constructDocumentPath(collectionPath, document.getId());
+
+            JsonNode oldKey = document.getContent().get(indexedField);
+            index.removePointer(oldKey, pointer);
+
+            if (newContent.has(indexedField)) {
+                JsonNode newKey = newContent.get(indexedField);
+                index.addPointer(newKey, pointer);
+            }
+            indexManager.saveIndex(index, indexPath);
+        }
+    }
+
+
     public void insertToAllIndexes(Document document, String pointer) throws Exception {
         String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(pointer);
-        List<String> indexedFields = getIndexedFields(document.getData(), collectionPath);
+        List<String> indexedFields = getIndexedFields(document.getContent(), collectionPath);
 
         for (String field : indexedFields) {
             String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
-            JsonNode key = document.getData().get(field);
+            JsonNode key = document.getContent().get(field);
             indexManager.addToIndex(indexPath, key, pointer);
         }
 

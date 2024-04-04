@@ -5,6 +5,7 @@ import com.atypon.decentraldbcluster.services.DocumentIndexService;
 import com.atypon.decentraldbcluster.services.FileSystemService;
 import com.atypon.decentraldbcluster.services.PathConstructor;
 import com.atypon.decentraldbcluster.validation.SchemaValidator;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,17 +38,21 @@ public class CollectionQueryExecutor implements Executable<CollectionQuery> {
 
     private Void handleCreateCollection(CollectionQuery query) throws Exception {
 
-        schemaValidator.validateSchemaDataTypes(query.getSchema());
+        schemaValidator.validateSchemaDataTypesIfExists(query.getSchema());
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
 
         fileSystemService.createDirectory(Paths.get(collectionPath, "documents").toString() );
         fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "system_generated_indexes").toString() );
         fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "user_generated_indexes").toString() );
 
-        fileSystemService.saveFile(query.getSchema().toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
+        saveSchemaIfExists(query.getSchema(), collectionPath);
 
         documentIndexService.createSystemIdIndex(collectionPath);
         return null;
+    }
+    private void saveSchemaIfExists(JsonNode schema, String collectionPath) throws IOException {
+        if (schema != null)
+            fileSystemService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
     }
 
 

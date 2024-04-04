@@ -28,7 +28,7 @@ public class DocumentFilterService {
         List<Document> filteredDocuments = new ArrayList<>();
 
         for (var document: documents) {
-            if (isDocumentMatch(filter, document.getData()))
+            if (isDocumentMatch(filter, document.getContent()))
                 filteredDocuments.add(document);
         }
 

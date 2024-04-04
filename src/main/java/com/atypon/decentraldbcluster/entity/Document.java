@@ -10,20 +10,20 @@ public class Document implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
     private String id = UUID.randomUUID().toString();
-    private JsonNode data;
+    private JsonNode content;
     private int version = 1;
     private int affinityPort;
 
     public Document() {}
 
     public Document(JsonNode data, int affinityPort) {
-        this.data = data;
+        this.content = data;
         this.affinityPort = affinityPort;
     }
 
     public Document(Document src) {
         this.id = src.id;
-        this.data = src.getData();
+        this.content = src.getContent();
         this.version = src.getVersion();
         this.affinityPort = src.getAffinityPort();
     }
@@ -32,12 +32,12 @@ public class Document implements Serializable {
         return id;
     }
 
-    public JsonNode getData() {
-        return data;
+    public JsonNode getContent() {
+        return content;
     }
 
-    public void setData(JsonNode data) {
-        this.data = data;
+    public void setContent(JsonNode content) {
+        this.content = content;
     }
 
     public int getVersion() {

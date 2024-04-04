@@ -13,7 +13,8 @@ public class FilterConfig {
         registrationBean.setFilter(nodeAffinityFilter);
         registrationBean.addUrlPatterns(
                 "/api/document/deleteDocument/*",
-                "/api/document/updateDocument/*"
+                "/api/document/updateDocument/*",
+                "/api/document/replaceDocument/*"
         );
         return registrationBean;
     }

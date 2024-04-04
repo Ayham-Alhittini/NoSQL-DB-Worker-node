@@ -65,20 +65,29 @@ public class DocumentController {
     }
 
 
-    @PutMapping("updateDocument/{database}/{collection}/{documentId}")
+    @PatchMapping("updateDocument/{database}/{collection}/{documentId}")
     public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestParam int expectedVersion, @RequestBody JsonNode requestBody) throws Exception {
+        return modifyDocument(request, database, collection, documentId, expectedVersion, requestBody, "REPLACE");
+    }
 
+    @PutMapping("replaceDocument/{database}/{collection}/{documentId}")
+    public Document replaceDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestParam int expectedVersion, @RequestBody JsonNode requestBody) throws Exception {
+        return modifyDocument(request, database, collection, documentId, expectedVersion, requestBody, "UPDATE");
+    }
+
+    private Document modifyDocument(HttpServletRequest request, String database, String collection, String documentId, int expectedVersion, JsonNode newContent, String processType) throws Exception {
         Document document = (Document) request.getAttribute("document");
 
         if (optimisticLocking.attemptVersionUpdate(document, expectedVersion)) {
 
             DocumentQueryBuilder builder = new DocumentQueryBuilder();
-            Query query = builder
+            builder = builder
                     .withOriginator(userDetails.getUserId(request))
                     .withDatabase(database)
-                    .withCollection(collection)
-                    .updateDocument(document, requestBody)
-                    .build();
+                    .withCollection(collection);
+
+            builder = processType.equals("UPDATE") ? builder.updateDocument(document, newContent) : builder.replaceDocument(document, newContent);
+            Query query = builder.build();
 
             Document updatedDocument = queryExecutor.exec(query, Document.class);
             optimisticLocking.clearDocumentVersion(documentId);// To prevent storing unneeded document
@@ -90,8 +99,5 @@ public class DocumentController {
     }
 }
 
-
-
-
-//TODO: make validation on extra fields as well for addDocument
+//TODO: make validation on extra fields as well for addDocument & Update document
 //TODO:Eviction Strategy, for document version cashing

@@ -18,7 +18,7 @@ public class Index implements Serializable {
         this.indexMap = new ConcurrentSkipListMap<>();
     }
 
-    public void add(JsonNode jsonNode, String pointer) {
+    public void addPointer(JsonNode jsonNode, String pointer) {
         IndexKey key = new IndexKey(jsonNode);
         if (indexMap.containsKey(key)) {
             var pointers = indexMap.get(key);
@@ -32,7 +32,7 @@ public class Index implements Serializable {
         }
     }
 
-    public void remove(JsonNode jsonNode, String pointer) {
+    public void removePointer(JsonNode jsonNode, String pointer) {
         IndexKey key = new IndexKey(jsonNode);
         var pointers = indexMap.get(key);
         pointers.remove(pointer);

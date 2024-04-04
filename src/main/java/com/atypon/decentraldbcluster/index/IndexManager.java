@@ -1,6 +1,5 @@
 package com.atypon.decentraldbcluster.index;
 
-import com.atypon.decentraldbcluster.index.Index;
 import com.atypon.decentraldbcluster.lock.DiskResourcesLock;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,13 +37,13 @@ public class IndexManager {
 
     public void addToIndex(String indexPath, JsonNode key, String valuePath) throws Exception {
         Index index = loadIndex(indexPath);
-        index.add(key, valuePath);
+        index.addPointer(key, valuePath);
         saveIndex(index, indexPath);
     }
 
     public void removeFromIndex(String indexPath, JsonNode key, String valuePath) throws Exception {
         Index index = loadIndex(indexPath);
-        index.remove(key, valuePath);
+        index.removePointer(key, valuePath);
         saveIndex(index, indexPath);
     }
 }

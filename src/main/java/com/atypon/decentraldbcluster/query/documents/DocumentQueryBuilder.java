@@ -38,6 +38,13 @@ public class DocumentQueryBuilder implements QueryBuilder {
         return this;
     }
 
+    public DocumentQueryBuilder replaceDocument(Document document, JsonNode newContent) {
+        query.setDocumentAction(DocumentAction.REPLACE);
+        query.setDocument(document);
+        query.setNewContent(newContent);
+        return this;
+    }
+
     //Rely on condition
     public DocumentQueryBuilder selectDocuments() {
         query.setDocumentAction(DocumentAction.SELECT);

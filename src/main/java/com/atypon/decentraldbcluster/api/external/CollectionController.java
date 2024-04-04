@@ -28,7 +28,7 @@ public class CollectionController {
     }
 
     @PostMapping("createCollection/{database}/{collection}")
-    public void createCollection(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode schema) throws Exception {
+    public void createCollection(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody(required = false) JsonNode schema) throws Exception {
 
         CollectionQueryBuilder builder = new CollectionQueryBuilder();
 

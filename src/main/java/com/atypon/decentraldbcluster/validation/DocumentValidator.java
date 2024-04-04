@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.validation;
 
+import com.atypon.decentraldbcluster.error.ResourceNotFoundException;
 import com.atypon.decentraldbcluster.services.FileSystemService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,16 +31,21 @@ public class DocumentValidator {
             "yyyy-MM-dd HH:mm:ss"
     );
 
-    public JsonNode readSchema(String collectionPath) throws IOException {
+    private JsonNode readSchema(String collectionPath) throws IOException {
         String schemaPath = Paths.get(collectionPath, "schema.json").toString();
 
-        String fileContent = fileSystemService.loadFileContent(schemaPath);
-        return mapper.readTree(fileContent);
+        try {
+            String fileContent = fileSystemService.loadFileContent(schemaPath);
+            return mapper.readTree(fileContent);
+        } catch (ResourceNotFoundException e) {
+            return null;
+        }
     }
 
     public void doesDocumentMatchSchema(JsonNode data, String schemaCollection, boolean fieldsRequired) throws IOException {
         JsonNode schema = readSchema(schemaCollection);
-        doesDocumentMatchSchemaWithPath(data, schema, "schema", fieldsRequired);
+        if (schema != null)
+            doesDocumentMatchSchemaWithPath(data, schema, "schema", fieldsRequired);
     }
 
     private void doesDocumentMatchSchemaWithPath(JsonNode document, JsonNode schema, String path, boolean fieldsRequired) {
