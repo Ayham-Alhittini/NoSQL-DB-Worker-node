@@ -73,8 +73,3 @@ public class CollectionController {
         return ListCaster.castList(rawList, String.class);
     }
 }
-
-
-
-
-//TODO: create schema less collection

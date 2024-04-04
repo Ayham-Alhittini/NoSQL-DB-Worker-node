@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.query.base;
 
+//Implementation for each query type at the query executor
 public abstract class Query {
     protected String originator;
     protected String database;

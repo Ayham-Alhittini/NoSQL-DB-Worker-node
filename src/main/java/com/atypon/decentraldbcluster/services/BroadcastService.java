@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 public class BroadcastService {
     private static final String  prefixBroadcastUrl = "/internal/api/broadcast/";
 
-
+    //TODO: consider async broadcast
     public static void doBroadcast(HttpServletRequest request, String endpoint, Object body) {
         RestTemplate restTemplate = new RestTemplate();
 

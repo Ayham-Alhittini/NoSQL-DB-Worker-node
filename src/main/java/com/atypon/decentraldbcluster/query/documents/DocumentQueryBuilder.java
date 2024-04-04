@@ -24,7 +24,6 @@ public class DocumentQueryBuilder implements QueryBuilder {
         return this;
     }
 
-    //Rely on condition
     public DocumentQueryBuilder deleteDocument(Document document) {
         query.setDocumentAction(DocumentAction.DELETE);
         query.setDocument(document);

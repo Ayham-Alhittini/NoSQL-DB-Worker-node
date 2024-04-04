@@ -36,25 +36,6 @@ public class CollectionQueryExecutor implements Executable<CollectionQuery> {
         };
     }
 
-    private Void handleCreateCollection(CollectionQuery query) throws Exception {
-
-        schemaValidator.validateSchemaDataTypesIfExists(query.getSchema());
-        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
-
-        fileSystemService.createDirectory(Paths.get(collectionPath, "documents").toString() );
-        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "system_generated_indexes").toString() );
-        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "user_generated_indexes").toString() );
-
-        saveSchemaIfExists(query.getSchema(), collectionPath);
-
-        documentIndexService.createSystemIdIndex(collectionPath);
-        return null;
-    }
-    private void saveSchemaIfExists(JsonNode schema, String collectionPath) throws IOException {
-        if (schema != null && !schema.isNull())
-            fileSystemService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
-    }
-
 
     private Void handleDropCollection(CollectionQuery query) throws IOException {
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
@@ -69,4 +50,24 @@ public class CollectionQueryExecutor implements Executable<CollectionQuery> {
         return fileSystemService.listAllDirectories(databasePath);
     }
 
+
+    private Void handleCreateCollection(CollectionQuery query) throws Exception {
+
+        schemaValidator.validateSchemaDataTypesIfExists(query.getSchema());
+        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
+
+        fileSystemService.createDirectory(Paths.get(collectionPath, "documents").toString() );
+        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "system_generated_indexes").toString() );
+        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "user_generated_indexes").toString() );
+
+        saveSchemaIfExists(query.getSchema(), collectionPath);
+
+        documentIndexService.createSystemIdIndex(collectionPath);
+        return null;
+    }
+
+    private void saveSchemaIfExists(JsonNode schema, String collectionPath) throws IOException {
+        if (schema != null && !schema.isNull())
+            fileSystemService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
+    }
 }

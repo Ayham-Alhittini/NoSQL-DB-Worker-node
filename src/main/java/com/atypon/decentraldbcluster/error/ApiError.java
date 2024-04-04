@@ -2,6 +2,7 @@ package com.atypon.decentraldbcluster.error;
 
 import org.springframework.http.HttpStatus;
 
+//TODO: there should be query errors as well
 public class ApiError {
     private HttpStatus status;
     private int statusCode;

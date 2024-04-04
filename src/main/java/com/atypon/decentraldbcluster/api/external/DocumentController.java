@@ -40,7 +40,7 @@ public class DocumentController {
                 .build();
 
         Document addedDocument = queryExecutor.exec(query, Document.class);
-        query.setDocument(addedDocument);
+        query.setDocument(addedDocument);//To broadcast document with same ID and affinity port, as they generated dynamically
 
         BroadcastService.doBroadcast(request, "document", query);
         return addedDocument;
@@ -100,6 +100,5 @@ public class DocumentController {
         throw new IllegalArgumentException("Conflict");
     }
 }
-
 //TODO: make validation on extra fields as well for addDocument & Update document
 //TODO:Eviction Strategy, for document version cashing
