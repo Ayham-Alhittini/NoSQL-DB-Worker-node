@@ -53,16 +53,19 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
 
     private Document handleAddDocument(DocumentQuery query) throws Exception {
 
-        Document queryDocument = query.getDocument();
-
-        Document document = queryDocument != null ? queryDocument : new Document(query.getContent(), affinityLoadBalancer.getNextAffinityNodePort());
-
-        String collectionPath = PathConstructor
-                .constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
-        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
-
+        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         documentValidator.doesDocumentMatchSchema(query.getContent(), collectionPath, true);
 
+        Document queryDocument = query.getDocument();
+        Document document;
+        if (queryDocument != null) {
+            document = queryDocument;
+            affinityLoadBalancer.incrementNodeAssignedDocuments(document.getAffinityPort());
+        } else {
+            document = new Document(query.getContent(), affinityLoadBalancer.getNextAffinityNodePort());
+        }
+
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
         fileSystemService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
         documentIndexService.insertToAllIndexes(document, documentPath);
 
@@ -72,8 +75,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
 
     private Void handleDeleteDocument(DocumentQuery query) throws Exception {
 
-        String collectionPath = PathConstructor
-                .constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
+        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, query.getDocument().getId());
 
         documentIndexService.deleteDocumentFromIndexes(documentPath);
@@ -85,11 +87,11 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
 
 
     private Document handleUpdateDocument(DocumentQuery query) throws Exception {
-        Document document = new Document(query.getDocument());//clone the document to not affect the document at the controller because it will be broadcast with changes
-        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
-        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
 
+        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         documentValidator.doesDocumentMatchSchema(query.getNewContent(), collectionPath, false);
+
+        Document document = new Document(query.getDocument());//clone the document to not affect the document at the controller because it will be broadcast with changes
 
         documentIndexService.updateIndexes(document, query.getNewContent(), collectionPath);
 
@@ -97,22 +99,26 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
         document.setContent(updatedDocumentData);
         document.incrementVersion();
 
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
         fileSystemService.saveFile(mapper.valueToTree(document).toPrettyString(), documentPath);
 
         return document;
     }
 
     private Document handleReplaceDocument(DocumentQuery query) throws Exception {
-        Document document = new Document(query.getDocument());//clone the document to not affect the document at the controller because it will be broadcast with changes
-        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
-        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
 
+        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         documentValidator.doesDocumentMatchSchema(query.getNewContent(), collectionPath, true);
 
-        documentIndexService.replaceIndexes(document, query.getNewContent(), collectionPath);
+        Document document = new Document(query.getDocument());//clone the document to not affect the document at the controller because it will be broadcast with changes
 
         document.setContent(query.getNewContent());
         document.incrementVersion();
+
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
+
+        documentIndexService.deleteDocumentFromIndexes(documentPath);
+        documentIndexService.insertToAllIndexes(document, documentPath);
 
         fileSystemService.saveFile(mapper.valueToTree(document).toPrettyString(), documentPath);
 
@@ -141,9 +147,6 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
 
         return filterService.filterDocuments(documents, query.getCondition());
     }
-
-
-
 
     //Todo: think of moving some of the logic to the services
 }

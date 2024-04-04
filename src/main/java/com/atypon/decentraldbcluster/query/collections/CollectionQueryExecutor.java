@@ -51,7 +51,7 @@ public class CollectionQueryExecutor implements Executable<CollectionQuery> {
         return null;
     }
     private void saveSchemaIfExists(JsonNode schema, String collectionPath) throws IOException {
-        if (schema != null)
+        if (schema != null && !schema.isNull())
             fileSystemService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
     }
 

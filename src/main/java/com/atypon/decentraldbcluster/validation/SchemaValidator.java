@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 public class SchemaValidator {
 
     public void validateSchemaDataTypesIfExists(JsonNode schema) {
-        if (schema == null) return;
+        if (schema == null || schema.isNull()) return;
         validateSchemaWithPath(schema, "schema");
     }
 

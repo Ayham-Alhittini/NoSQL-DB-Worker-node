@@ -89,26 +89,6 @@ public class DocumentIndexService {
         }
     }
 
-    public void replaceIndexes(Document document, JsonNode newContent, String collectionPath) throws Exception {
-        List<String> indexedFields = getIndexedFields(document.getContent(), collectionPath);
-        for (String indexedField : indexedFields) {
-            String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, indexedField);
-            Index index = indexManager.loadIndex(indexPath);
-
-            String pointer = PathConstructor.constructDocumentPath(collectionPath, document.getId());
-
-            JsonNode oldKey = document.getContent().get(indexedField);
-            index.removePointer(oldKey, pointer);
-
-            if (newContent.has(indexedField)) {
-                JsonNode newKey = newContent.get(indexedField);
-                index.addPointer(newKey, pointer);
-            }
-            indexManager.saveIndex(index, indexPath);
-        }
-    }
-
-
     public void insertToAllIndexes(Document document, String pointer) throws Exception {
         String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(pointer);
         List<String> indexedFields = getIndexedFields(document.getContent(), collectionPath);

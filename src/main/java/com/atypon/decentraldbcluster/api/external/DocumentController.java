@@ -40,8 +40,8 @@ public class DocumentController {
                 .build();
 
         Document addedDocument = queryExecutor.exec(query, Document.class);
-
         query.setDocument(addedDocument);
+
         BroadcastService.doBroadcast(request, "document", query);
         return addedDocument;
     }
@@ -67,12 +67,12 @@ public class DocumentController {
 
     @PatchMapping("updateDocument/{database}/{collection}/{documentId}")
     public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestParam int expectedVersion, @RequestBody JsonNode requestBody) throws Exception {
-        return modifyDocument(request, database, collection, documentId, expectedVersion, requestBody, "REPLACE");
+        return modifyDocument(request, database, collection, documentId, expectedVersion, requestBody, "UPDATE");
     }
 
     @PutMapping("replaceDocument/{database}/{collection}/{documentId}")
     public Document replaceDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestParam int expectedVersion, @RequestBody JsonNode requestBody) throws Exception {
-        return modifyDocument(request, database, collection, documentId, expectedVersion, requestBody, "UPDATE");
+        return modifyDocument(request, database, collection, documentId, expectedVersion, requestBody, "REPLACE");
     }
 
     private Document modifyDocument(HttpServletRequest request, String database, String collection, String documentId, int expectedVersion, JsonNode newContent, String processType) throws Exception {
@@ -80,20 +80,22 @@ public class DocumentController {
 
         if (optimisticLocking.attemptVersionUpdate(document, expectedVersion)) {
 
-            DocumentQueryBuilder builder = new DocumentQueryBuilder();
-            builder = builder
-                    .withOriginator(userDetails.getUserId(request))
-                    .withDatabase(database)
-                    .withCollection(collection);
+            try {
+                DocumentQueryBuilder builder = new DocumentQueryBuilder();
+                builder = builder
+                        .withOriginator(userDetails.getUserId(request))
+                        .withDatabase(database)
+                        .withCollection(collection);
 
-            builder = processType.equals("UPDATE") ? builder.updateDocument(document, newContent) : builder.replaceDocument(document, newContent);
-            Query query = builder.build();
+                builder = processType.equals("UPDATE") ? builder.updateDocument(document, newContent) : builder.replaceDocument(document, newContent);
+                Query query = builder.build();
 
-            Document updatedDocument = queryExecutor.exec(query, Document.class);
-            optimisticLocking.clearDocumentVersion(documentId);// To prevent storing unneeded document
-
-            BroadcastService.doBroadcast(request, "document", query);
-            return updatedDocument;
+                Document updatedDocument = queryExecutor.exec(query, Document.class);
+                BroadcastService.doBroadcast(request, "document", query);
+                return updatedDocument;
+            } finally {
+                optimisticLocking.clearDocumentVersion(documentId);// In case error happen.
+            }
         }
         throw new IllegalArgumentException("Conflict");
     }
