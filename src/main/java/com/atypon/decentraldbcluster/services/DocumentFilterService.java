@@ -44,6 +44,8 @@ public class DocumentFilterService {
 
     public String getMostSelectiveIndexFiled(JsonNode filter, String collectionPath) throws Exception {
         List<String> indexedFields = documentIndexService.getIndexedFields(filter, collectionPath);
+        if (indexedFields.isEmpty()) return null; // No indexes found
+
         int minSelectiveSize = Integer.MAX_VALUE;
         String mostSelectiveIndex = null;
 
@@ -52,12 +54,12 @@ public class DocumentFilterService {
 
             var pointers = index.getPointers( filter.get(field) );
 
-            if (pointers == null) continue;
-
             if (pointers.size() < minSelectiveSize) {
                 minSelectiveSize = pointers.size();
                 mostSelectiveIndex = field;
             }
+
+            if (minSelectiveSize == 0) return field;// Can't reduce any longer
         }
         return mostSelectiveIndex;
     }

@@ -49,7 +49,7 @@ public class Index implements Serializable {
         if (indexMap.containsKey(key)) {
             return indexMap.get(key);
         }
-        return null;
+        return new ConcurrentSkipListSet<>();
     }
 
     public boolean containsKey(JsonNode jsonNode) {
