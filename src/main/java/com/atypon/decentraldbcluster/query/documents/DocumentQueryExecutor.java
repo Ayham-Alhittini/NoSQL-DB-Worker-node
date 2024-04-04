@@ -54,7 +54,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
     private Document handleAddDocument(DocumentQuery query) throws Exception {
 
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
-        documentValidator.doesDocumentMatchSchema(query.getContent(), collectionPath, true);
+        documentValidator.validateDocument(query.getContent(), collectionPath, true);
 
         Document queryDocument = query.getDocument();
         Document document;
@@ -89,7 +89,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
     private Document handleUpdateDocument(DocumentQuery query) throws Exception {
 
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
-        documentValidator.doesDocumentMatchSchema(query.getNewContent(), collectionPath, false);
+        documentValidator.validateDocument(query.getNewContent(), collectionPath, false);
 
         Document document = new Document(query.getDocument());//clone the document to not affect the document at the controller because it will be broadcast with changes
 
@@ -108,7 +108,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
     private Document handleReplaceDocument(DocumentQuery query) throws Exception {
 
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
-        documentValidator.doesDocumentMatchSchema(query.getNewContent(), collectionPath, true);
+        documentValidator.validateDocument(query.getNewContent(), collectionPath, true);
 
         Document document = new Document(query.getDocument());//clone the document to not affect the document at the controller because it will be broadcast with changes
 

@@ -13,6 +13,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DocumentValidator {
@@ -31,9 +32,22 @@ public class DocumentValidator {
             "yyyy-MM-dd HH:mm:ss"
     );
 
-    private JsonNode readSchema(String collectionPath) throws IOException {
-        String schemaPath = Paths.get(collectionPath, "schema.json").toString();
+    public void validateDocument(JsonNode data, String schemaCollection, boolean fieldsRequired) throws IOException {
+        JsonNode schema = loadSchema(schemaCollection);
+        if (schema == null) return;
+        validateDocumentAgainstSchema(data, schema, "schema", fieldsRequired);
+    }
 
+    private JsonNode loadSchema(String collectionPath) throws IOException {
+        String schemaPath = constructSchemaPath(collectionPath);
+        return readSchemaFromPath(schemaPath);
+    }
+
+    private String constructSchemaPath(String collectionPath) {
+        return Paths.get(collectionPath, "schema.json").toString();
+    }
+
+    private JsonNode readSchemaFromPath(String schemaPath) throws IOException {
         try {
             String fileContent = fileSystemService.loadFileContent(schemaPath);
             return mapper.readTree(fileContent);
@@ -42,34 +56,41 @@ public class DocumentValidator {
         }
     }
 
-    public void doesDocumentMatchSchema(JsonNode data, String schemaCollection, boolean fieldsRequired) throws IOException {
-        JsonNode schema = readSchema(schemaCollection);
-        if (schema != null)
-            doesDocumentMatchSchemaWithPath(data, schema, "schema", fieldsRequired);
+    private void validateDocumentAgainstSchema(JsonNode document, JsonNode schema, String path, boolean fieldsRequired) {
+        schema.fields().forEachRemaining(field -> validateField(document, field, path, fieldsRequired));
     }
 
-    private void doesDocumentMatchSchemaWithPath(JsonNode document, JsonNode schema, String path, boolean fieldsRequired) {
-        AppDataType documentType = getDataType(document);
-        String schemaType = schema.isObject() ? "OBJECT" : schema.asText();
-        AppDataType schemaDataType = AppDataType.valueOf(schemaType.toUpperCase());
+    private void validateField(JsonNode document, Map.Entry<String, JsonNode> field, String path, boolean fieldsRequired) {
+        String fieldName = field.getKey();
+        JsonNode documentField = document.get(fieldName);
+        JsonNode schemaField = field.getValue();
+        String fieldPath = path + "." + fieldName;
+
+        if (documentField == null && fieldsRequired) {
+            throw new IllegalArgumentException("Missing field at " + fieldPath);
+        }
+
+        if (documentField != null) {
+            validateDataType(documentField, schemaField, fieldPath, fieldsRequired);
+        }
+    }
+
+    private void validateDataType(JsonNode documentField, JsonNode schemaField, String path, boolean fieldsRequired) {
+        AppDataType documentType = getDataType(documentField);
+        AppDataType schemaDataType = getSchemaDataType(schemaField);
 
         if (!isMatch(documentType, schemaDataType)) {
             throw new IllegalArgumentException("Type mismatch at " + path + ": expected " + schemaDataType + ", found " + documentType);
         }
 
         if (documentType == AppDataType.OBJECT) {
-            schema.fields().forEachRemaining(field -> {
-
-                JsonNode documentField = document.get(field.getKey());
-                if (documentField == null) {
-                    if (fieldsRequired) {
-                        throw new IllegalArgumentException("Missing field at " + path + "." + field.getKey());
-                    }
-                    return;
-                }
-                doesDocumentMatchSchemaWithPath(documentField, schema.get(field.getKey()), path + "." + field.getKey(), fieldsRequired);
-            });
+            validateDocumentAgainstSchema(documentField, schemaField, path, fieldsRequired);
         }
+    }
+
+    private AppDataType getSchemaDataType(JsonNode schemaField) {
+        String schemaType = schemaField.isObject() ? "OBJECT" : schemaField.asText();
+        return AppDataType.valueOf(schemaType.toUpperCase());
     }
 
     private boolean isMatch(AppDataType dataType, AppDataType schemaDataType) {
