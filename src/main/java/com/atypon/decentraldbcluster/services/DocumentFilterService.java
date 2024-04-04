@@ -2,6 +2,7 @@ package com.atypon.decentraldbcluster.services;
 
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.index.IndexManager;
+import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,16 +13,15 @@ import java.util.List;
 @Service
 public class DocumentFilterService {
 
-    private final DocumentReaderService documentService;
     private final IndexManager indexManager;
     private final DocumentIndexService documentIndexService;
 
     @Autowired
-    public DocumentFilterService(DocumentReaderService documentService, IndexManager indexManager, DocumentIndexService documentIndexService) {
-        this.documentService = documentService;
+    public DocumentFilterService(IndexManager indexManager, DocumentIndexService documentIndexService) {
         this.indexManager = indexManager;
         this.documentIndexService = documentIndexService;
     }
+
 
     public List<Document> filterDocuments(List<Document> documents, JsonNode filter) {
 
@@ -35,10 +35,17 @@ public class DocumentFilterService {
         return filteredDocuments;
     }
 
-    //Todo: should be at reader not the filter, since no filter applied
-    public Document findDocumentById(String collectionPath, String documentId) throws Exception {
-        String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
-        return documentService.readDocument(documentPath);
+
+    private boolean isDocumentMatch(JsonNode filter, JsonNode documentData) {
+        var fields = filter.fields();
+
+        while (fields.hasNext()) {
+            var field = fields.next();
+
+            if (documentData.get(field.getKey()) == null || !documentData.get(field.getKey()).equals(field.getValue()))
+                return false;
+        }
+        return true;
     }
 
 
@@ -64,18 +71,6 @@ public class DocumentFilterService {
         return mostSelectiveIndex;
     }
 
-
     //TODO: you can further improve it by allowing sub objects.
-    private boolean isDocumentMatch(JsonNode filter, JsonNode documentData) {
-        var fields = filter.fields();
-
-        while (fields.hasNext()) {
-            var field = fields.next();
-
-            if (documentData.get(field.getKey()) == null || !documentData.get(field.getKey()).equals(field.getValue()))
-                return false;
-        }
-        return true;
-    }
 
 }

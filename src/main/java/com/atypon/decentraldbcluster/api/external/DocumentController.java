@@ -19,12 +19,14 @@ public class DocumentController {
 
     private final UserDetails userDetails;
     private final QueryExecutor queryExecutor;
+    private final BroadcastService broadcastService;
     private final OptimisticLocking optimisticLocking;
 
     @Autowired
-    public DocumentController(UserDetails userDetails, OptimisticLocking optimisticLocking, QueryExecutor queryExecutor) {
+    public DocumentController(UserDetails userDetails, OptimisticLocking optimisticLocking, QueryExecutor queryExecutor, BroadcastService broadcastService) {
         this.userDetails = userDetails;
         this.queryExecutor = queryExecutor;
+        this.broadcastService = broadcastService;
         this.optimisticLocking = optimisticLocking;
     }
 
@@ -42,7 +44,7 @@ public class DocumentController {
         Document addedDocument = queryExecutor.exec(query, Document.class);
         query.setDocument(addedDocument);//To broadcast document with same ID and affinity port, as they generated dynamically
 
-        BroadcastService.doBroadcast(request, "document", query);
+        broadcastService.doBroadcast(request, "document", query);
         return addedDocument;
     }
 
@@ -61,7 +63,7 @@ public class DocumentController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "document", query);
+        broadcastService.doBroadcast(request, "document", query);
     }
 
 
@@ -91,7 +93,7 @@ public class DocumentController {
                 Query query = builder.build();
 
                 Document updatedDocument = queryExecutor.exec(query, Document.class);
-                BroadcastService.doBroadcast(request, "document", query);
+                broadcastService.doBroadcast(request, "document", query);
                 return updatedDocument;
             } finally {
                 optimisticLocking.clearDocumentVersion(documentId);// In case error happen.

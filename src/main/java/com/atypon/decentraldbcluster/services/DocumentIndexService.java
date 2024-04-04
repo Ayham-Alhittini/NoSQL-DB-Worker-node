@@ -3,6 +3,7 @@ package com.atypon.decentraldbcluster.services;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.index.Index;
 import com.atypon.decentraldbcluster.index.IndexManager;
+import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,7 +90,7 @@ public class DocumentIndexService {
         }
     }
 
-    public void insertToAllIndexes(Document document, String pointer) throws Exception {
+    public void insertToAllDocumentIndexes(Document document, String pointer) throws Exception {
         String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(pointer);
         List<String> indexedFields = getIndexedFields(document.getContent(), collectionPath);
 

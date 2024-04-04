@@ -4,7 +4,7 @@ import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.documents.DocumentQueryBuilder;
-import com.atypon.decentraldbcluster.services.ListCaster;
+import com.atypon.decentraldbcluster.utility.ListCaster;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;

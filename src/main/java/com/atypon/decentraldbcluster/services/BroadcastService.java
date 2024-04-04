@@ -5,13 +5,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+@Service
 public class BroadcastService {
-    private static final String  prefixBroadcastUrl = "/internal/api/broadcast/";
 
     //TODO: consider async broadcast
-    public static void doBroadcast(HttpServletRequest request, String endpoint, Object body) {
+    public void doBroadcast(HttpServletRequest request, String endpoint, Object body) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -20,6 +21,7 @@ public class BroadcastService {
 
         for (Integer port: NodeConfiguration.getOtherNodesPort()) {
 
+            String prefixBroadcastUrl = "/internal/api/broadcast/";
             String requestUrl = NodeConfiguration.getNodeAddress(port) + prefixBroadcastUrl +  endpoint;
 
             restTemplate.exchange( requestUrl , HttpMethod.POST, requestEntity, Void.class);

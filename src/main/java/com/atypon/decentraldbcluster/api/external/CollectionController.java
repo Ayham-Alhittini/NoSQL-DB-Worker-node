@@ -4,7 +4,7 @@ import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.collections.CollectionQueryBuilder;
 import com.atypon.decentraldbcluster.services.BroadcastService;
-import com.atypon.decentraldbcluster.services.ListCaster;
+import com.atypon.decentraldbcluster.utility.ListCaster;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,11 +20,13 @@ public class CollectionController {
 
     private final UserDetails userDetails;
     private final QueryExecutor queryExecutor;
+    private final BroadcastService broadcastService;
 
     @Autowired
-    public CollectionController(UserDetails userDetails, QueryExecutor queryExecutor) {
+    public CollectionController(UserDetails userDetails, QueryExecutor queryExecutor, BroadcastService broadcastService) {
         this.userDetails = userDetails;
         this.queryExecutor = queryExecutor;
+        this.broadcastService = broadcastService;
     }
 
     @PostMapping("createCollection/{database}/{collection}")
@@ -40,7 +42,7 @@ public class CollectionController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "collection", query);
+        broadcastService.doBroadcast(request, "collection", query);
     }
 
     @DeleteMapping("dropCollection/{database}/{collection}")
@@ -55,7 +57,7 @@ public class CollectionController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "collection", query);
+        broadcastService.doBroadcast(request, "collection", query);
     }
 
     @GetMapping("showCollections/{database}")

@@ -4,7 +4,7 @@ import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.databases.DatabaseQueryBuilder;
 import com.atypon.decentraldbcluster.services.BroadcastService;
-import com.atypon.decentraldbcluster.services.ListCaster;
+import com.atypon.decentraldbcluster.utility.ListCaster;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +19,13 @@ public class DatabaseController {
 
     private final UserDetails userDetails;
     private final QueryExecutor queryExecutor;
+    private final BroadcastService broadcastService;
 
     @Autowired
-    public DatabaseController(UserDetails userDetails, QueryExecutor queryExecutor) {
+    public DatabaseController(UserDetails userDetails, QueryExecutor queryExecutor, BroadcastService broadcastService) {
         this.userDetails = userDetails;
         this.queryExecutor = queryExecutor;
+        this.broadcastService = broadcastService;
     }
 
     @PostMapping("createDB/{database}")
@@ -37,7 +39,7 @@ public class DatabaseController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "database", query);
+        broadcastService.doBroadcast(request, "database", query);
     }
 
     @DeleteMapping("dropDB/{database}")
@@ -51,7 +53,7 @@ public class DatabaseController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "database", query);
+        broadcastService.doBroadcast(request, "database", query);
     }
 
     @GetMapping("/showDbs")

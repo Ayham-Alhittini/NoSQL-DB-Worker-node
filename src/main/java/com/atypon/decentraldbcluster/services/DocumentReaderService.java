@@ -1,9 +1,8 @@
 package com.atypon.decentraldbcluster.services;
 
 import com.atypon.decentraldbcluster.entity.Document;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +29,11 @@ public class DocumentReaderService {
         return mapper.readValue(fileContent, Document.class);
     }
 
+    public Document findDocumentById(String collectionPath, String documentId) throws Exception {
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, documentId);
+        return readDocument(documentPath);
+    }
+
 
     public List<Document> readDocumentsByDocumentsPathList(Set<String> documentsPath) throws IOException {
         List<Document> documents = new ArrayList<>();
@@ -39,6 +43,7 @@ public class DocumentReaderService {
         return documents;
     }
 
+
     public List<Document> readDocumentsByCollectionPath(String collectionPath) throws IOException {
         List<Document> documents = new ArrayList<>();
         List<String> filesPath = fileSystemService.getDirectoryFilesPath( Paths.get(collectionPath, "documents").toString() );
@@ -46,11 +51,5 @@ public class DocumentReaderService {
             documents.add( readDocument(documentPath) );
         }
         return documents;
-    }
-
-    public JsonNode patchDocument(JsonNode requestBody, JsonNode oldDocument) {
-        ObjectNode newDocument = (ObjectNode) oldDocument;
-        requestBody.fields().forEachRemaining(field -> newDocument.set(field.getKey(), field.getValue()));
-        return newDocument;
     }
 }

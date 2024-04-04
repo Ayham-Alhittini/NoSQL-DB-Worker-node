@@ -16,11 +16,13 @@ public class IndexController {
 
     private final UserDetails userDetails;
     private final QueryExecutor queryExecutor;
+    private final BroadcastService broadcastService;
 
     @Autowired
-    public IndexController(UserDetails userDetails, QueryExecutor queryExecutor) {
+    public IndexController(UserDetails userDetails, QueryExecutor queryExecutor, BroadcastService broadcastService) {
         this.userDetails = userDetails;
         this.queryExecutor = queryExecutor;
+        this.broadcastService = broadcastService;
     }
 
     @PostMapping("createIndex/{database}/{collection}/{field}")
@@ -36,7 +38,7 @@ public class IndexController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "index", query);
+        broadcastService.doBroadcast(request, "index", query);
     }
 
     @DeleteMapping("dropIndex/{database}/{collection}/{field}")
@@ -52,7 +54,7 @@ public class IndexController {
                 .build();
 
         queryExecutor.exec(query);
-        BroadcastService.doBroadcast(request, "index", query);
+        broadcastService.doBroadcast(request, "index", query);
     }
 
 }

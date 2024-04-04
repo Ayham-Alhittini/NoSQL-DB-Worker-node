@@ -1,4 +1,6 @@
-package com.atypon.decentraldbcluster.services;
+package com.atypon.decentraldbcluster.utility;
+
+import com.atypon.decentraldbcluster.query.base.Query;
 
 import java.nio.file.Paths;
 
@@ -11,6 +13,9 @@ public class PathConstructor {
 
     public static String constructCollectionPath(String userDirectory, String database, String collection) {
         return Paths.get(getRootDirectory(), userDirectory, database, collection).toString();
+    }
+    public static String constructCollectionPath(Query query) {
+        return Paths.get(getRootDirectory(), query.getOriginator(), query.getDatabase(), query.getCollection()).toString();
     }
 
     public static String constructUserGeneratedIndexPath(String collectionPath, String fieldName) {
