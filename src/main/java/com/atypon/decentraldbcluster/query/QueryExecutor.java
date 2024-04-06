@@ -21,6 +21,7 @@ public class QueryExecutor implements Executable<Query> {
     private final DatabaseQueryExecutor databaseQueryExecutor;
     private final CollectionQueryExecutor collectionQueryExecutor;
 
+
     @Autowired
     public QueryExecutor(DatabaseQueryExecutor databaseQueryExecutor, CollectionQueryExecutor collectionQueryExecutor,
                          IndexQueryExecutor indexQueryExecutor, DocumentQueryExecutor documentQueryExecutor) {
@@ -30,7 +31,6 @@ public class QueryExecutor implements Executable<Query> {
         this.collectionQueryExecutor = collectionQueryExecutor;
     }
 
-
     public <R> R exec(Query query, Class<R> returnType) throws Exception {
         Object result = exec(query);
 
@@ -38,8 +38,6 @@ public class QueryExecutor implements Executable<Query> {
             return returnType.cast(result);
         throw new ClassCastException("The result cannot be cast to " + returnType.getName());
     }
-
-
 
     // Factory design pattern
     @Override

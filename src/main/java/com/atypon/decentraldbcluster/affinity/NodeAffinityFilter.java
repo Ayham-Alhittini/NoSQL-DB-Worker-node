@@ -48,7 +48,7 @@ public class NodeAffinityFilter implements Filter {
             Query query = getQueryFromBuilder(userDetails.getUserId(request), requestParts);
             Document document = queryExecutor.exec(query, Document.class);
             if (!isAssignedNode(document)) {
-                redirectToAffinity(request, response, requestURI, document.getAffinityPort());
+                redirectToAffinity(response, requestURI, document.getAffinityPort());
                 return;
             }
             request.setAttribute("document", document);
@@ -74,21 +74,12 @@ public class NodeAffinityFilter implements Filter {
         return document.getAffinityPort() == NodeConfiguration.getCurrentNodePort();
     }
 
-    private void redirectToAffinity(HttpServletRequest request, HttpServletResponse response, String requestURI, int affinityPort) {
+    private void redirectToAffinity(HttpServletResponse response, String requestURI, int affinityPort) {
         String redirectUrl = "http://localhost:" + affinityPort;
         redirectUrl += requestURI;
-        redirectUrl += assignDocumentVersionParam(request);
 
         response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT); // 307 status code
         response.setHeader("Location", redirectUrl);
     }
 
-    private String assignDocumentVersionParam(HttpServletRequest request) {
-        String paramName = "expectedVersion";
-        String paramValue = request.getParameter(paramName);
-
-        if (paramValue != null)
-            return "?" + paramName + "=" + paramValue;
-        return "";
-    }
 }

@@ -26,6 +26,7 @@ public class SelectDocumentsHandler {
         this.documentReaderService = documentReaderService;
     }
 
+
     public Object handle(DocumentQuery query) throws Exception {
 
         String collectionPath = PathConstructor.constructCollectionPath(query);
@@ -36,6 +37,9 @@ public class SelectDocumentsHandler {
             return selectByContent(query, collectionPath);
         }
     }
+
+
+
 
     private boolean isSelectByIdQuery(DocumentQuery query) {
         return query.getDocumentId() != null;

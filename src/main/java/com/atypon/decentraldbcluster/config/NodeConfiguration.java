@@ -13,8 +13,8 @@ public class NodeConfiguration {
     //Development
     private static final String baseNodeAddress = "http://localhost:";
     private static int currentNodePort = 8081;
-    private static List<Integer> otherNodesPort = List.of(8082);
-//    private static List<Integer> otherNodesPort = new ArrayList<>();
+//    private static List<Integer> otherNodesPort = List.of(8082);
+    private static List<Integer> otherNodesPort = new ArrayList<>();
 
 
     public static String getNodeAddress(int portNumber) {

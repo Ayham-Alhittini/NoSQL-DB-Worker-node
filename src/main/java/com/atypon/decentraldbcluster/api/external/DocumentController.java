@@ -1,11 +1,11 @@
 package com.atypon.decentraldbcluster.api.external;
 
 import com.atypon.decentraldbcluster.entity.Document;
-import com.atypon.decentraldbcluster.lock.OptimisticLocking;
 import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.documents.DocumentQuery;
 import com.atypon.decentraldbcluster.query.documents.DocumentQueryBuilder;
+import com.atypon.decentraldbcluster.query.documents.DocumentQueryExecutor;
 import com.atypon.decentraldbcluster.services.BroadcastService;
 import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,14 +20,14 @@ public class DocumentController {
     private final UserDetails userDetails;
     private final QueryExecutor queryExecutor;
     private final BroadcastService broadcastService;
-    private final OptimisticLocking optimisticLocking;
+    private final DocumentQueryExecutor documentQueryExecutor;
 
     @Autowired
-    public DocumentController(UserDetails userDetails, OptimisticLocking optimisticLocking, QueryExecutor queryExecutor, BroadcastService broadcastService) {
+    public DocumentController(UserDetails userDetails, QueryExecutor queryExecutor, BroadcastService broadcastService, DocumentQueryExecutor documentQueryExecutor) {
         this.userDetails = userDetails;
         this.queryExecutor = queryExecutor;
         this.broadcastService = broadcastService;
-        this.optimisticLocking = optimisticLocking;
+        this.documentQueryExecutor = documentQueryExecutor;
     }
 
     @PostMapping("addDocument/{database}/{collection}")
@@ -68,39 +68,36 @@ public class DocumentController {
 
 
     @PatchMapping("updateDocument/{database}/{collection}/{documentId}")
-    public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestParam int expectedVersion, @RequestBody JsonNode requestBody) throws Exception {
-        return modifyDocument(request, database, collection, documentId, expectedVersion, requestBody, "UPDATE");
+    public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestBody JsonNode newContent) throws Exception {
+
+        Document document = (Document) request.getAttribute("document");
+
+        DocumentQueryBuilder builder = new DocumentQueryBuilder();
+        DocumentQuery query = builder
+                .withOriginator(userDetails.getUserId(request))
+                .withDatabase(database)
+                .withCollection(collection)
+                .updateDocument(document, newContent)
+                .build();
+
+        return (Document) documentQueryExecutor.execWithOptimisticLockingForModify(query);
     }
 
     @PutMapping("replaceDocument/{database}/{collection}/{documentId}")
-    public Document replaceDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestParam int expectedVersion, @RequestBody JsonNode requestBody) throws Exception {
-        return modifyDocument(request, database, collection, documentId, expectedVersion, requestBody, "REPLACE");
-    }
+    public Document replaceDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestBody JsonNode newContent) throws Exception {
 
-    private Document modifyDocument(HttpServletRequest request, String database, String collection, String documentId, int expectedVersion, JsonNode newContent, String processType) throws Exception {
         Document document = (Document) request.getAttribute("document");
 
-        if (optimisticLocking.attemptVersionUpdate(document, expectedVersion)) {
+        DocumentQueryBuilder builder = new DocumentQueryBuilder();
+        DocumentQuery query = builder
+                .withOriginator(userDetails.getUserId(request))
+                .withDatabase(database)
+                .withCollection(collection)
+                .replaceDocument(document, newContent)
+                .build();
 
-            try {
-                DocumentQueryBuilder builder = new DocumentQueryBuilder();
-                builder = builder
-                        .withOriginator(userDetails.getUserId(request))
-                        .withDatabase(database)
-                        .withCollection(collection);
-
-                builder = processType.equals("UPDATE") ? builder.updateDocument(document, newContent) : builder.replaceDocument(document, newContent);
-                Query query = builder.build();
-
-                Document updatedDocument = queryExecutor.exec(query, Document.class);
-                broadcastService.doBroadcast(request, "document", query);
-                return updatedDocument;
-            } finally {
-                optimisticLocking.clearDocumentVersion(documentId);// In case error happen.
-            }
-        }
-        throw new IllegalArgumentException("Conflict");
+        return (Document) documentQueryExecutor.execWithOptimisticLockingForModify(query);
     }
 }
+
 //TODO: make validation on extra fields as well for addDocument & Update document
-//TODO:Eviction Strategy, for document version cashing

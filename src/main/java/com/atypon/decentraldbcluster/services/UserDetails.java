@@ -15,10 +15,6 @@ public class UserDetails {
         this.jwtService = jwtService;
     }
 
-    public String getUserDirectory(HttpServletRequest request) {
-        return getUserId(request);
-    }
-
     public String getUserId(HttpServletRequest request) throws JWTVerificationException {
         String token = (String) request.getAttribute("token");
         return jwtService.getUserId(token);
