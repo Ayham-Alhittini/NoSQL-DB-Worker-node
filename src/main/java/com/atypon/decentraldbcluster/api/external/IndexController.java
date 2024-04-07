@@ -3,8 +3,8 @@ package com.atypon.decentraldbcluster.api.external;
 import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.index.IndexQueryBuilder;
+import com.atypon.decentraldbcluster.secuirty.JwtService;
 import com.atypon.decentraldbcluster.services.BroadcastService;
-import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,13 +14,14 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin("*")
 public class IndexController {
 
-    private final UserDetails userDetails;
+
+    private final JwtService jwtService;
     private final QueryExecutor queryExecutor;
     private final BroadcastService broadcastService;
 
     @Autowired
-    public IndexController(UserDetails userDetails, QueryExecutor queryExecutor, BroadcastService broadcastService) {
-        this.userDetails = userDetails;
+    public IndexController(JwtService jwtService, QueryExecutor queryExecutor, BroadcastService broadcastService) {
+        this.jwtService = jwtService;
         this.queryExecutor = queryExecutor;
         this.broadcastService = broadcastService;
     }
@@ -31,7 +32,7 @@ public class IndexController {
         IndexQueryBuilder builder = new IndexQueryBuilder();
 
         Query query = builder
-                .withOriginator( userDetails.getUserId(request) )
+                .withOriginator( jwtService.getUserId(request) )
                 .withDatabase(database)
                 .withCollection(collection)
                 .createIndex(field)
@@ -47,7 +48,7 @@ public class IndexController {
         IndexQueryBuilder builder = new IndexQueryBuilder();
 
         Query query = builder
-                .withOriginator( userDetails.getUserId(request) )
+                .withOriginator( jwtService.getUserId(request) )
                 .withDatabase(database)
                 .withCollection(collection)
                 .dropIndex(field)

@@ -6,8 +6,8 @@ import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.documents.DocumentQuery;
 import com.atypon.decentraldbcluster.query.documents.DocumentQueryBuilder;
 import com.atypon.decentraldbcluster.query.documents.DocumentQueryExecutor;
+import com.atypon.decentraldbcluster.secuirty.JwtService;
 import com.atypon.decentraldbcluster.services.BroadcastService;
-import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +17,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/document")
 public class DocumentController {
 
-    private final UserDetails userDetails;
+
+    private final JwtService jwtService;
     private final QueryExecutor queryExecutor;
     private final BroadcastService broadcastService;
     private final DocumentQueryExecutor documentQueryExecutor;
 
     @Autowired
-    public DocumentController(UserDetails userDetails, QueryExecutor queryExecutor, BroadcastService broadcastService, DocumentQueryExecutor documentQueryExecutor) {
-        this.userDetails = userDetails;
+    public DocumentController(JwtService jwtService, QueryExecutor queryExecutor, BroadcastService broadcastService, DocumentQueryExecutor documentQueryExecutor) {
+        this.jwtService = jwtService;
         this.queryExecutor = queryExecutor;
         this.broadcastService = broadcastService;
         this.documentQueryExecutor = documentQueryExecutor;
@@ -35,7 +36,7 @@ public class DocumentController {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
         DocumentQuery query = builder
-                .withOriginator(userDetails.getUserId(request))
+                .withOriginator(jwtService.getUserId(request))
                 .withDatabase(database)
                 .withCollection(collection)
                 .addDocument(documentContent)
@@ -56,7 +57,7 @@ public class DocumentController {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
         Query query = builder
-                .withOriginator(userDetails.getUserId(request))
+                .withOriginator(jwtService.getUserId(request))
                 .withDatabase(database)
                 .withCollection(collection)
                 .deleteDocument(document)
@@ -74,7 +75,7 @@ public class DocumentController {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
         DocumentQuery query = builder
-                .withOriginator(userDetails.getUserId(request))
+                .withOriginator(jwtService.getUserId(request))
                 .withDatabase(database)
                 .withCollection(collection)
                 .updateDocument(document, newContent)
@@ -90,7 +91,7 @@ public class DocumentController {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
         DocumentQuery query = builder
-                .withOriginator(userDetails.getUserId(request))
+                .withOriginator(jwtService.getUserId(request))
                 .withDatabase(database)
                 .withCollection(collection)
                 .replaceDocument(document, newContent)

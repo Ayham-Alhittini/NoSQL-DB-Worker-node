@@ -1,14 +1,12 @@
-package com.atypon.decentraldbcluster.services;
+package com.atypon.decentraldbcluster.disk;
 
 
-import com.atypon.decentraldbcluster.error.ResourceNotFoundException;
-import com.atypon.decentraldbcluster.lock.DiskResourcesLock;
+import com.atypon.decentraldbcluster.exceptions.ResourceNotFoundException;
+import com.atypon.decentraldbcluster.index.Index;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,7 +51,7 @@ public class FileSystemService {
         }
     }
 
-    public List<String> listAllDirectories(String path) {
+    public List<String> getAllDirectories(String path) {
 
         List<String> directoriesName = new ArrayList<>();
 
@@ -127,4 +125,23 @@ public class FileSystemService {
             resourcesLock.releaseWriteResource(filePath);
         }
     }
+
+    public Index loadIndex(String indexPath) throws Exception {
+        resourcesLock.lockReadResource(indexPath);
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(indexPath))) {
+            return (Index) in.readObject();
+        } finally {
+            resourcesLock.releaseReadResource(indexPath);
+        }
+    }
+
+    public void saveIndex(Index index, String indexPath) throws IOException {
+        resourcesLock.lockWriteResource(indexPath);
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(indexPath))) {
+            out.writeObject(index);
+        } finally {
+            resourcesLock.releaseWriteResource(indexPath);
+        }
+    }
+
 }

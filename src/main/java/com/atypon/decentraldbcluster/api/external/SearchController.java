@@ -4,8 +4,8 @@ import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.documents.DocumentQueryBuilder;
+import com.atypon.decentraldbcluster.secuirty.JwtService;
 import com.atypon.decentraldbcluster.utility.ListCaster;
-import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +18,12 @@ import java.util.List;
 @CrossOrigin("*")
 public class SearchController {
 
-    private final UserDetails userDetails;
+    private final JwtService jwtService;
     private final QueryExecutor queryExecutor;
 
     @Autowired
-    public SearchController(UserDetails userDetails, QueryExecutor queryExecutor) {
-        this.userDetails = userDetails;
+    public SearchController(JwtService jwtService, QueryExecutor queryExecutor) {
+        this.jwtService = jwtService;
         this.queryExecutor = queryExecutor;
     }
 
@@ -33,7 +33,7 @@ public class SearchController {
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
 
         Query query = builder
-                .withOriginator( userDetails.getUserId(request) )
+                .withOriginator( jwtService.getUserId(request) )
                 .withDatabase(database)
                 .withCollection(collection)
                 .selectDocuments()
@@ -50,7 +50,7 @@ public class SearchController {
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
 
         Query query = builder
-                .withOriginator( userDetails.getUserId(request) )
+                .withOriginator( jwtService.getUserId(request) )
                 .withDatabase(database)
                 .withCollection(collection)
                 .selectDocuments()

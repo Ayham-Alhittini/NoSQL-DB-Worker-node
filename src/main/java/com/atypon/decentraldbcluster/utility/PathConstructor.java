@@ -22,10 +22,6 @@ public class PathConstructor {
         return Paths.get(collectionPath, "indexes", "user_generated_indexes", fieldName + ".ser").toString();
     }
 
-    public static String constructSystemGeneratedIndexPath(String collectionPath) {
-        return Paths.get(collectionPath, "indexes", "system_generated_indexes", "id.ser").toString();
-    }
-
     public static String constructDocumentPath(String collectionPath, String documentId) {
         return Paths.get( collectionPath , "documents", documentId + ".json").toString();
     }
@@ -33,11 +29,4 @@ public class PathConstructor {
     public static String extractCollectionPathFromDocumentPath(String documentPath) {
         return documentPath.substring(0, documentPath.indexOf("documents"));
     }
-
-    public static String extractDocumentIdFromDocumentPath(String documentPath) {
-        String temp = documentPath.substring(documentPath.indexOf("documents/") + "documents/".length());
-        return temp.substring(0, temp.indexOf(".json"));
-    }
-
-
 }

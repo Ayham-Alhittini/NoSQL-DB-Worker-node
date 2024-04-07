@@ -3,9 +3,9 @@ package com.atypon.decentraldbcluster.api.external;
 import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.collections.CollectionQueryBuilder;
+import com.atypon.decentraldbcluster.secuirty.JwtService;
 import com.atypon.decentraldbcluster.services.BroadcastService;
 import com.atypon.decentraldbcluster.utility.ListCaster;
-import com.atypon.decentraldbcluster.services.UserDetails;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +18,13 @@ import java.util.List;
 @CrossOrigin("*")
 public class CollectionController {
 
-    private final UserDetails userDetails;
+    private final JwtService jwtService;
     private final QueryExecutor queryExecutor;
     private final BroadcastService broadcastService;
 
     @Autowired
-    public CollectionController(UserDetails userDetails, QueryExecutor queryExecutor, BroadcastService broadcastService) {
-        this.userDetails = userDetails;
+    public CollectionController(JwtService jwtService, QueryExecutor queryExecutor, BroadcastService broadcastService) {
+        this.jwtService = jwtService;
         this.queryExecutor = queryExecutor;
         this.broadcastService = broadcastService;
     }
@@ -35,7 +35,7 @@ public class CollectionController {
         CollectionQueryBuilder builder = new CollectionQueryBuilder();
 
         Query query = builder
-                .withOriginator(userDetails.getUserId(request))
+                .withOriginator(jwtService.getUserId(request))
                 .withDatabase(database)
                 .createCollection(collection)
                 .withSchema(schema)
@@ -51,7 +51,7 @@ public class CollectionController {
         CollectionQueryBuilder builder = new CollectionQueryBuilder();
 
         Query query = builder
-                .withOriginator(userDetails.getUserId(request))
+                .withOriginator(jwtService.getUserId(request))
                 .withDatabase(database)
                 .dropCollection(collection)
                 .build();
@@ -66,7 +66,7 @@ public class CollectionController {
         CollectionQueryBuilder builder = new CollectionQueryBuilder();
 
         Query query = builder
-                .withOriginator(userDetails.getUserId(request))
+                .withOriginator(jwtService.getUserId(request))
                 .withDatabase(database)
                 .showCollections()
                 .build();

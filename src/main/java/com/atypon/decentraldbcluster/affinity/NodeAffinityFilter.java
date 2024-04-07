@@ -2,11 +2,11 @@ package com.atypon.decentraldbcluster.affinity;
 
 import com.atypon.decentraldbcluster.config.NodeConfiguration;
 import com.atypon.decentraldbcluster.entity.Document;
-import com.atypon.decentraldbcluster.error.ResourceNotFoundException;
+import com.atypon.decentraldbcluster.exceptions.ResourceNotFoundException;
 import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.documents.DocumentQueryBuilder;
-import com.atypon.decentraldbcluster.services.UserDetails;
+import com.atypon.decentraldbcluster.secuirty.JwtService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,12 +21,13 @@ import java.io.IOException;
 @Order(2)
 public class NodeAffinityFilter implements Filter {
 
-    private final UserDetails userDetails;
+
+    private final JwtService jwtService;
     private final QueryExecutor queryExecutor;
 
     @Autowired
-    public NodeAffinityFilter(UserDetails userDetails, QueryExecutor queryExecutor) {
-        this.userDetails = userDetails;
+    public NodeAffinityFilter(JwtService jwtService, QueryExecutor queryExecutor) {
+        this.jwtService = jwtService;
         this.queryExecutor = queryExecutor;
     }
 
@@ -45,7 +46,7 @@ public class NodeAffinityFilter implements Filter {
         }
 
         try {
-            Query query = getQueryFromBuilder(userDetails.getUserId(request), requestParts);
+            Query query = getQueryFromBuilder(jwtService.getUserId(request), requestParts);
             Document document = queryExecutor.exec(query, Document.class);
             if (!isAssignedNode(document)) {
                 redirectToAffinity(response, requestURI, document.getAffinityPort());

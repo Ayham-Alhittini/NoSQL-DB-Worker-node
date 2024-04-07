@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.error;
+package com.atypon.decentraldbcluster.exceptions;
 
 public class ResourceNotFoundException extends RuntimeException {
     public ResourceNotFoundException(String message) {

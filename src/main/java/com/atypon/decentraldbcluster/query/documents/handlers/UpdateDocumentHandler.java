@@ -3,7 +3,7 @@ package com.atypon.decentraldbcluster.query.documents.handlers;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.documents.DocumentQuery;
 import com.atypon.decentraldbcluster.services.DocumentIndexService;
-import com.atypon.decentraldbcluster.services.FileSystemService;
+import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.atypon.decentraldbcluster.validation.DocumentValidator;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -3,9 +3,9 @@ package com.atypon.decentraldbcluster.api.external;
 import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.base.Query;
 import com.atypon.decentraldbcluster.query.databases.DatabaseQueryBuilder;
+import com.atypon.decentraldbcluster.secuirty.JwtService;
 import com.atypon.decentraldbcluster.services.BroadcastService;
 import com.atypon.decentraldbcluster.utility.ListCaster;
-import com.atypon.decentraldbcluster.services.UserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +17,13 @@ import java.util.List;
 @CrossOrigin("*")
 public class DatabaseController {
 
-    private final UserDetails userDetails;
+    private final JwtService jwtService;
     private final QueryExecutor queryExecutor;
     private final BroadcastService broadcastService;
 
     @Autowired
-    public DatabaseController(UserDetails userDetails, QueryExecutor queryExecutor, BroadcastService broadcastService) {
-        this.userDetails = userDetails;
+    public DatabaseController(JwtService jwtService, QueryExecutor queryExecutor, BroadcastService broadcastService) {
+        this.jwtService = jwtService;
         this.queryExecutor = queryExecutor;
         this.broadcastService = broadcastService;
     }
@@ -34,7 +34,7 @@ public class DatabaseController {
         DatabaseQueryBuilder builder = new DatabaseQueryBuilder();
 
         Query query = builder
-                .withOriginator(userDetails.getUserId(request))
+                .withOriginator(jwtService.getUserId(request))
                 .createDatabase(database)
                 .build();
 
@@ -48,7 +48,7 @@ public class DatabaseController {
         DatabaseQueryBuilder builder = new DatabaseQueryBuilder();
 
         Query query = builder
-                .withOriginator(userDetails.getUserId(request))
+                .withOriginator(jwtService.getUserId(request))
                 .dropDatabase(database)
                 .build();
 
@@ -62,7 +62,7 @@ public class DatabaseController {
         DatabaseQueryBuilder builder = new DatabaseQueryBuilder();
 
         Query query = builder
-                .withOriginator(userDetails.getUserId(request))
+                .withOriginator(jwtService.getUserId(request))
                 .showDbs()
                 .build();
 

@@ -1,7 +1,6 @@
 package com.atypon.decentraldbcluster.query.collections;
 
-import com.atypon.decentraldbcluster.services.DocumentIndexService;
-import com.atypon.decentraldbcluster.services.FileSystemService;
+import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.atypon.decentraldbcluster.validation.SchemaValidator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,13 +15,11 @@ import java.util.List;
 public class CollectionHandler {
     private final SchemaValidator schemaValidator;
     private final FileSystemService fileSystemService;
-    private final DocumentIndexService documentIndexService;
 
     @Autowired
-    public CollectionHandler(SchemaValidator schemaValidator, FileSystemService fileSystemService, DocumentIndexService documentIndexService) {
+    public CollectionHandler(SchemaValidator schemaValidator, FileSystemService fileSystemService) {
         this.schemaValidator = schemaValidator;
         this.fileSystemService = fileSystemService;
-        this.documentIndexService = documentIndexService;
     }
 
 
@@ -36,7 +33,7 @@ public class CollectionHandler {
     public List<String> handleShowCollections(CollectionQuery query) {
         String rootDirectory = PathConstructor.getRootDirectory();
         String databasePath = Paths.get(rootDirectory, query.getOriginator(), query.getDatabase()).toString();
-        return fileSystemService.listAllDirectories(databasePath);
+        return fileSystemService.getAllDirectories(databasePath);
     }
 
 
@@ -52,12 +49,9 @@ public class CollectionHandler {
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
 
         fileSystemService.createDirectory(Paths.get(collectionPath, "documents").toString() );
-        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "system_generated_indexes").toString() );
-        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes", "user_generated_indexes").toString() );
+        fileSystemService.createDirectory( Paths.get(collectionPath, "indexes").toString() );
 
         saveSchemaIfExists(query.getSchema(), collectionPath);
-
-        documentIndexService.createSystemIdIndex(collectionPath);
         return null;
     }
 }

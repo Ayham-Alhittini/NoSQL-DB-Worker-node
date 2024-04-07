@@ -1,7 +1,7 @@
 package com.atypon.decentraldbcluster.services;
 
+import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.atypon.decentraldbcluster.entity.Document;
-import com.atypon.decentraldbcluster.index.IndexManager;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +13,12 @@ import java.util.List;
 @Service
 public class DocumentFilterService {
 
-    private final IndexManager indexManager;
+    private final FileSystemService fileSystemService;
     private final DocumentIndexService documentIndexService;
 
     @Autowired
-    public DocumentFilterService(IndexManager indexManager, DocumentIndexService documentIndexService) {
-        this.indexManager = indexManager;
+    public DocumentFilterService(FileSystemService fileSystemService, DocumentIndexService documentIndexService) {
+        this.fileSystemService = fileSystemService;
         this.documentIndexService = documentIndexService;
     }
 
@@ -36,6 +36,7 @@ public class DocumentFilterService {
     }
 
 
+    //TODO: you can further improve it by allowing sub objects.
     private boolean isDocumentMatch(JsonNode filter, JsonNode documentData) {
         var fields = filter.fields();
 
@@ -57,7 +58,7 @@ public class DocumentFilterService {
         String mostSelectiveIndex = null;
 
         for (String field: indexedFields) {
-            var index = indexManager.loadIndex( PathConstructor.constructUserGeneratedIndexPath(collectionPath, field) );
+            var index = fileSystemService.loadIndex( PathConstructor.constructUserGeneratedIndexPath(collectionPath, field) );
 
             var pointers = index.getPointers( filter.get(field) );
 
@@ -70,7 +71,5 @@ public class DocumentFilterService {
         }
         return mostSelectiveIndex;
     }
-
-    //TODO: you can further improve it by allowing sub objects.
 
 }

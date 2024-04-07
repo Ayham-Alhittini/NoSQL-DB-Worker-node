@@ -3,7 +3,7 @@ package com.atypon.decentraldbcluster.query.documents.handlers;
 import com.atypon.decentraldbcluster.affinity.AffinityLoadBalancer;
 import com.atypon.decentraldbcluster.query.documents.DocumentQuery;
 import com.atypon.decentraldbcluster.services.DocumentIndexService;
-import com.atypon.decentraldbcluster.services.FileSystemService;
+import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

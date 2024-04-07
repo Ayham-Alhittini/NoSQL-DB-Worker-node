@@ -1,7 +1,6 @@
 package com.atypon.decentraldbcluster.query.databases;
 
-import com.atypon.decentraldbcluster.query.databases.DatabaseQuery;
-import com.atypon.decentraldbcluster.services.FileSystemService;
+import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +32,6 @@ public class DatabaseHandler {
     }
 
     public List<String> handleShowDbs(DatabaseQuery query)  {
-        return fileSystemService.listAllDirectories(rootDirectory + "/" + query.getOriginator());
+        return fileSystemService.getAllDirectories(rootDirectory + "/" + query.getOriginator());
     }
 }

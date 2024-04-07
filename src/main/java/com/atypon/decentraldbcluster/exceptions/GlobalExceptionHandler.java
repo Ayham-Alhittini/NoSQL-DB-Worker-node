@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.error;
+package com.atypon.decentraldbcluster.exceptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.io.FileNotFoundException;
-
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -18,43 +16,23 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 
     @ExceptionHandler(Exception.class)
-    public final ResponseEntity<Object> handleAllExceptions(Exception ex) {
-
-        ApiError apiError = new ApiError(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                ex.getMessage()
-        );
-
+    public final ResponseEntity<String> handleAllExceptions(Exception ex) {
         logger.error("Find exception: {}", ex.getMessage(), ex);
-
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     //Bad request handling
     @ExceptionHandler(IllegalArgumentException.class)
     public final ResponseEntity<Object> badRequest(Exception ex) {
-
-        ApiError apiError = new ApiError(
-                HttpStatus.BAD_REQUEST,
-                ex.getMessage()
-        );
-
-        logger.error("Find exception: {}", ex.getMessage(), ex);
-
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+        logger.error("Bad request: {}", ex.getMessage(), ex);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     //Not found handling
     @ExceptionHandler(ResourceNotFoundException.class)
     public final ResponseEntity<Object> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        ApiError apiError = new ApiError(
-                HttpStatus.NOT_FOUND,
-                ex.getMessage()
-        );
-
         logger.error("Resource not found: {}", ex.getMessage(), ex);
-
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
 }

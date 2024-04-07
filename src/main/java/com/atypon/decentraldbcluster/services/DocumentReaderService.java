@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.services;
 
+import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;

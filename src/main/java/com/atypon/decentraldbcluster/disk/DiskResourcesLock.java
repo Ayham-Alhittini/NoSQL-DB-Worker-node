@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.lock;
+package com.atypon.decentraldbcluster.disk;
 
 import org.springframework.stereotype.Service;
 

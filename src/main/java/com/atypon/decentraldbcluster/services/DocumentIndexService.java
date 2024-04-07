@@ -1,15 +1,13 @@
 package com.atypon.decentraldbcluster.services;
 
+import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.index.Index;
-import com.atypon.decentraldbcluster.index.IndexManager;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -18,14 +16,12 @@ import java.util.List;
 @Service
 public class DocumentIndexService {
 
-    private final ObjectMapper mapper;
-    private final IndexManager indexManager;
+    private final FileSystemService fileSystemService;
     private final DocumentReaderService documentReaderService;
 
     @Autowired
-    public DocumentIndexService(DocumentReaderService documentService, IndexManager indexManager, ObjectMapper mapper) {
-        this.mapper = mapper;
-        this.indexManager = indexManager;
+    public DocumentIndexService(DocumentReaderService documentService, FileSystemService fileSystemService) {
+        this.fileSystemService = fileSystemService;
         this.documentReaderService = documentService;
     }
 
@@ -43,19 +39,7 @@ public class DocumentIndexService {
             }
         }
         if (!findAtLeastOneDocumentWithTheFiled) throw new IllegalArgumentException("Field not exists");
-        indexManager.saveIndex(index, indexPath);
-    }
-
-    public void createSystemIdIndex(String collectionPath) throws Exception {
-        List<Document> documents = documentReaderService.readDocumentsByCollectionPath(collectionPath);
-        String indexPath = PathConstructor.constructSystemGeneratedIndexPath(collectionPath);
-        Index index = new Index();
-        for (Document document : documents) {
-            String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
-            JsonNode key = parseStringToJsonNode(document.getId());
-            index.addPointer(key, documentPath);
-        }
-        indexManager.saveIndex(index, indexPath);
+        fileSystemService.saveIndex(index, indexPath);
     }
 
     public void deleteDocumentFromIndexes(String documentPointer) throws Exception {
@@ -65,19 +49,15 @@ public class DocumentIndexService {
 
         for (String field : indexedFields) {
             String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
-            indexManager.removeFromIndex(indexPath, document.getContent().get(field), documentPointer);
+            removeFromIndex(indexPath, document.getContent().get(field), documentPointer);
         }
-
-        // System-generated index update
-        String systemIndexPath = PathConstructor.constructSystemGeneratedIndexPath(collectionPath);
-        indexManager.removeFromIndex(systemIndexPath, parseStringToJsonNode(document.getId() ), documentPointer);
     }
 
     public void updateIndexes(Document document, JsonNode requestBody, String collectionPath) throws Exception {
         List<String> indexedFields = getIndexedFields(requestBody, collectionPath);
         for (String field : indexedFields) {
             String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
-            Index index = indexManager.loadIndex(indexPath);
+            Index index = fileSystemService.loadIndex(indexPath);
             JsonNode oldKey = document.getContent().get(field);
             JsonNode newKey = requestBody.get(field);
             String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
@@ -85,7 +65,7 @@ public class DocumentIndexService {
             if (!oldKey.equals(newKey)) { // Only update if the key has changed
                 index.removePointer(oldKey, documentPath);
                 index.addPointer(newKey, documentPath);
-                indexManager.saveIndex(index, indexPath);
+                fileSystemService.saveIndex(index, indexPath);
             }
         }
     }
@@ -97,17 +77,8 @@ public class DocumentIndexService {
         for (String field : indexedFields) {
             String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
             JsonNode key = document.getContent().get(field);
-            indexManager.addToIndex(indexPath, key, pointer);
+            addToIndex(indexPath, key, pointer);
         }
-
-        // System-generated ID index update
-        insertToSystemIdIndex(document, collectionPath, pointer);
-    }
-
-    private void insertToSystemIdIndex(Document document, String collectionPath, String pointer) throws Exception {
-        String indexPath = PathConstructor.constructSystemGeneratedIndexPath(collectionPath);
-        JsonNode key = parseStringToJsonNode(document.getId());
-        indexManager.addToIndex(indexPath, key, pointer);
     }
 
     public List<String> getIndexedFields(JsonNode jsonNode, String collectionPath) {
@@ -121,7 +92,16 @@ public class DocumentIndexService {
         return indexedFields;
     }
 
-    public JsonNode parseStringToJsonNode(String string) throws IOException {
-        return mapper.readTree("\"" + string + "\"");
+    public void addToIndex(String indexPath, JsonNode key, String valuePath) throws Exception {
+        Index index = fileSystemService.loadIndex(indexPath);
+        index.addPointer(key, valuePath);
+        fileSystemService.saveIndex(index, indexPath);
     }
+
+    public void removeFromIndex(String indexPath, JsonNode key, String valuePath) throws Exception {
+        Index index = fileSystemService.loadIndex(indexPath);
+        index.removePointer(key, valuePath);
+        fileSystemService.saveIndex(index, indexPath);
+    }
+
 }

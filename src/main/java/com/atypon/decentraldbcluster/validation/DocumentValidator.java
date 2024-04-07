@@ -1,7 +1,7 @@
 package com.atypon.decentraldbcluster.validation;
 
-import com.atypon.decentraldbcluster.error.ResourceNotFoundException;
-import com.atypon.decentraldbcluster.services.FileSystemService;
+import com.atypon.decentraldbcluster.exceptions.ResourceNotFoundException;
+import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;

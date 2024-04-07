@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.api.external;
+package com.atypon.decentraldbcluster.api.external.DbClient;
 
 import com.atypon.decentraldbcluster.query.QueryExecutor;
 import com.atypon.decentraldbcluster.query.collections.CollectionQuery;
@@ -22,8 +22,8 @@ public class QueryController {
     @Autowired
     public QueryController(QueryExecutor queryExecutor, DocumentQueryExecutor documentQueryExecutor, BroadcastService broadcastService) {
         this.queryExecutor = queryExecutor;
-        this.documentQueryExecutor = documentQueryExecutor;
         this.broadcastService = broadcastService;
+        this.documentQueryExecutor = documentQueryExecutor;
     }
 
     @PostMapping("collectionQueries")
@@ -33,12 +33,12 @@ public class QueryController {
         return queryResult;
     }
 
-
     @PostMapping("documentQueries")
     public Object documentQueries(HttpServletRequest request, @RequestBody DocumentQuery query) throws Exception {
-        var queryResult = documentQueryExecutor.execWithOptimisticLockingForModify(query);
-        broadcastService.doBroadcast(request, "document", query);
-        return queryResult;
+        throw new IllegalArgumentException("Test error");
+//        var queryResult = documentQueryExecutor.execWithOptimisticLockingForModify(query);
+//        broadcastService.doBroadcast(request, "document", query);
+//        return queryResult;
     }
 
     @PostMapping("indexQueries")
