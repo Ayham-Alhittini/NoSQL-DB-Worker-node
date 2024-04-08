@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.Serial;
@@ -9,23 +10,21 @@ import java.util.UUID;
 public class Document implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    private String id = UUID.randomUUID().toString();
+    private String id;
     private JsonNode content;
     private int version = 1;
-    private int affinityPort;
 
     public Document() {}
 
-    public Document(JsonNode data, int affinityPort) {
-        this.content = data;
-        this.affinityPort = affinityPort;
+    public Document(JsonNode content, int nodeNumber) {
+        this.content = content;
+        id = UUID.randomUUID().toString() + nodeNumber;
     }
 
-    public Document(Document src) {
-        this.id = src.id;
-        this.content = src.getContent();
-        this.version = src.getVersion();
-        this.affinityPort = src.getAffinityPort();
+    // To clone exists document on broadcast node
+    public Document(JsonNode content, String id) {
+        this.id = id;
+        this.content = content;
     }
 
     public String getId() {
@@ -47,8 +46,13 @@ public class Document implements Serializable {
     public void incrementVersion() {
         this.version++;
     }
+
+    @JsonIgnore
     public int getAffinityPort() {
-        return affinityPort;
+        int basePort = 8080;
+        // The last digit in the ID represent the node number
+        int nodeNumber = id.charAt(id.length() - 1) - '0';
+        return basePort + nodeNumber;
     }
 
 }

@@ -1,6 +1,7 @@
 package com.atypon.decentraldbcluster.utility;
 
-import com.atypon.decentraldbcluster.query.base.Query;
+import com.atypon.decentraldbcluster.query.types.DocumentQuery;
+import com.atypon.decentraldbcluster.query.types.Query;
 
 import java.nio.file.Paths;
 
@@ -19,11 +20,15 @@ public class PathConstructor {
     }
 
     public static String constructUserGeneratedIndexPath(String collectionPath, String fieldName) {
-        return Paths.get(collectionPath, "indexes", "user_generated_indexes", fieldName + ".ser").toString();
+        return Paths.get(collectionPath, "indexes", fieldName + ".ser").toString();
     }
 
     public static String constructDocumentPath(String collectionPath, String documentId) {
         return Paths.get( collectionPath , "documents", documentId + ".json").toString();
+    }
+
+    public static String constructDocumentPath(DocumentQuery query) {
+        return constructDocumentPath( constructCollectionPath(query), query.getDocumentId());
     }
 
     public static String extractCollectionPathFromDocumentPath(String documentPath) {

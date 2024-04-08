@@ -1,7 +1,7 @@
 package com.atypon.decentraldbcluster.services;
 
 import com.atypon.decentraldbcluster.config.NodeConfiguration;
-import com.atypon.decentraldbcluster.query.base.Query;
+import com.atypon.decentraldbcluster.query.types.Query;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

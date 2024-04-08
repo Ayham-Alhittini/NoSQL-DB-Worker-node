@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.secuirty;
 
+import com.atypon.decentraldbcluster.secuirty.JwtService;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
