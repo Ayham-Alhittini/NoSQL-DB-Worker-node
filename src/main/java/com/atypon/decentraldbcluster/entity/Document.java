@@ -2,6 +2,8 @@ package com.atypon.decentraldbcluster.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -10,25 +12,24 @@ import java.util.UUID;
 public class Document implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    private String id;
     private JsonNode content;
     private int version = 1;
 
     public Document() {}
 
     public Document(JsonNode content, int nodeNumber) {
-        this.content = content;
-        id = UUID.randomUUID().toString() + nodeNumber;
+        String id = UUID.randomUUID().toString() + nodeNumber;
+        this.content = appendIdToContent(content, id);
     }
 
     // To clone exists document on broadcast node
     public Document(JsonNode content, String id) {
-        this.id = id;
-        this.content = content;
+        this.content = appendIdToContent(content, id);
     }
 
+    @JsonIgnore
     public String getId() {
-        return id;
+        return content.get("object_id").asText();
     }
 
     public JsonNode getContent() {
@@ -47,12 +48,14 @@ public class Document implements Serializable {
         this.version++;
     }
 
-    @JsonIgnore
-    public int getAffinityPort() {
-        int basePort = 8080;
-        // The last digit in the ID represent the node number
-        int nodeNumber = id.charAt(id.length() - 1) - '0';
-        return basePort + nodeNumber;
+    public JsonNode appendIdToContent(JsonNode content, String id) {
+        ObjectNode temp = new ObjectMapper().createObjectNode();
+        temp.put("object_id", id);
+        var fields = content.fields();
+        while (fields.hasNext()) {
+            var field = fields.next();
+            temp.set(field.getKey(), field.getValue());
+        }
+        return temp;
     }
-
 }

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class AffinityLoadBalancer {
 
-    private final AtomicInteger currentNodePointer = new AtomicInteger(1);
+    private final AtomicInteger currentNodePointer = new AtomicInteger(0);
 
     public int getNextNodeNumber() {
         return currentNodePointer.getAndUpdate(nodeNumber -> (nodeNumber + 1) % NodeConfiguration.getClusterNodeSize()) + 1;

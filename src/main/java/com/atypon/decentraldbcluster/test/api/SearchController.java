@@ -28,7 +28,7 @@ public class SearchController {
     }
 
     @GetMapping("byID/{database}/{collection}/{documentId}")
-    public Document findById(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
+    public JsonNode findById(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
 
@@ -40,12 +40,12 @@ public class SearchController {
                 .withId(documentId)
                 .build();
 
-        return queryExecutor.exec(query, Document.class);
+        return queryExecutor.exec(query, JsonNode.class);
     }
 
 
     @GetMapping("byFilter/{database}/{collection}")
-    public List<Document> find(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode filter) throws Exception {
+    public List<JsonNode> find(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode filter) throws Exception {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
 
@@ -58,7 +58,7 @@ public class SearchController {
                 .build();
 
         List<?> rawList = queryExecutor.exec(query, List.class);
-        return ListCaster.castList(rawList, Document.class);
+        return ListCaster.castList(rawList, JsonNode.class);
     }
 
 }

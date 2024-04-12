@@ -33,7 +33,7 @@ public class UpdateDocumentHandler {
         this.documentReaderService = documentReaderService;
     }
 
-    public Document handle(DocumentQuery query) throws Exception {
+    public JsonNode handle(DocumentQuery query) throws Exception {
 
         String collectionPath = PathConstructor.constructCollectionPath(query);
 
@@ -46,7 +46,7 @@ public class UpdateDocumentHandler {
         updateDocument(document, query.getNewContent());
         saveDocument(document, collectionPath);
 
-        return document;
+        return document.getContent();
     }
 
 

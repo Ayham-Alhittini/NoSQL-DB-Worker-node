@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.query.executors;
 
+import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.lock.OptimisticLocking;
 import com.atypon.decentraldbcluster.query.actions.DocumentAction;
 import com.atypon.decentraldbcluster.query.handlers.document.DocumentHandler;
@@ -39,7 +40,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
         if (action == DocumentAction.SELECT || action == DocumentAction.ADD)
             return exec(query);
 
-        var document = documentReaderService.findDocumentById(query);
+        Document document = documentReaderService.findDocumentById(query);
         if (optimisticLocking.attemptVersionUpdate(document, document.getVersion())) {
             try {
                 return exec(query);

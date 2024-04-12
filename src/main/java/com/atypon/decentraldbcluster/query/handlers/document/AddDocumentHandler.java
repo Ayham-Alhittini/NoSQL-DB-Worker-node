@@ -7,6 +7,7 @@ import com.atypon.decentraldbcluster.query.types.DocumentQuery;
 import com.atypon.decentraldbcluster.services.DocumentIndexService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.atypon.decentraldbcluster.validation.DocumentValidator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,6 @@ import java.io.IOException;
 @Service
 public class AddDocumentHandler {
 
-    //Todo: think of make pass the id instead, and we don't need affinity port any longer actually
     private final ObjectMapper mapper;
     private final DocumentValidator documentValidator;
     private final FileSystemService fileSystemService;
@@ -31,7 +31,7 @@ public class AddDocumentHandler {
         this.affinityLoadBalancer = affinityLoadBalancer;
     }
 
-    public Document handle(DocumentQuery query) throws Exception {
+    public JsonNode handle(DocumentQuery query) throws Exception {
 
         String collectionPath = PathConstructor.constructCollectionPath(query);
         documentValidator.validateDocument(query.getContent(), collectionPath, true);
@@ -44,7 +44,7 @@ public class AddDocumentHandler {
         saveDocument(document, documentPath);
         documentIndexService.insertToAllDocumentIndexes(document, documentPath);
 
-        return document;
+        return document.getContent();
     }
 
 

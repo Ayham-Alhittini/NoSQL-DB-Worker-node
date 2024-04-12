@@ -32,7 +32,7 @@ public class DocumentController {
     }
 
     @PostMapping("addDocument/{database}/{collection}")
-    public Document addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode documentContent) throws Exception {
+    public JsonNode addDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode documentContent) throws Exception {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
         DocumentQuery query = builder
@@ -42,10 +42,10 @@ public class DocumentController {
                 .addDocument(documentContent)
                 .build();
 
-        Document addedDocument = queryExecutor.exec(query, Document.class);
+        JsonNode result = queryExecutor.exec(query, JsonNode.class);
 
         broadcastService.doBroadcast(request, "document", query);
-        return addedDocument;
+        return result;
     }
 
 
@@ -66,7 +66,7 @@ public class DocumentController {
 
 
     @PatchMapping("updateDocument/{database}/{collection}/{documentId}")
-    public Document updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestBody JsonNode newContent) throws Exception {
+    public JsonNode updateDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestBody JsonNode newContent) throws Exception {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
         DocumentQuery query = builder
@@ -76,13 +76,13 @@ public class DocumentController {
                 .updateDocument(documentId, newContent)
                 .build();
 
-        var result = (Document) documentQueryExecutor.execWithOptimisticLockingForModify(query);
+        var result = documentQueryExecutor.execWithOptimisticLockingForModify(query);
         broadcastService.doBroadcast(request, "document", query);
-        return result;
+        return (JsonNode) result;
     }
 
     @PutMapping("replaceDocument/{database}/{collection}/{documentId}")
-    public Document replaceDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestBody JsonNode newContent) throws Exception {
+    public JsonNode replaceDocument(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId, @RequestBody JsonNode newContent) throws Exception {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
         DocumentQuery query = builder
@@ -92,9 +92,9 @@ public class DocumentController {
                 .replaceDocument(documentId, newContent)
                 .build();
 
-        var result = (Document) documentQueryExecutor.execWithOptimisticLockingForModify(query);
+        var result = documentQueryExecutor.execWithOptimisticLockingForModify(query);
         broadcastService.doBroadcast(request, "document", query);
-        return result;
+        return (JsonNode) result;
     }
 }
 

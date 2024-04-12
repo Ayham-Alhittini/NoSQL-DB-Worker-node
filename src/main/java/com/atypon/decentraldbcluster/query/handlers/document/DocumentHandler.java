@@ -1,7 +1,7 @@
 package com.atypon.decentraldbcluster.query.handlers.document;
 
-import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Service;
 
 //Todo: we may need interface that have handle method on in it
@@ -22,7 +22,7 @@ public class DocumentHandler {
         this.replaceDocumentHandler = replaceDocumentHandler;
     }
 
-    public Document handleAddDocument(DocumentQuery query) throws Exception {
+    public JsonNode handleAddDocument(DocumentQuery query) throws Exception {
         return addDocumentHandler.handle(query);
     }
 
@@ -31,11 +31,11 @@ public class DocumentHandler {
         return null;
     }
 
-    public Document handleUpdateDocument(DocumentQuery query) throws Exception {
+    public JsonNode handleUpdateDocument(DocumentQuery query) throws Exception {
         return updateDocumentHandler.handle(query);
     }
 
-    public Document handleReplaceDocument(DocumentQuery query) throws Exception {
+    public JsonNode handleReplaceDocument(DocumentQuery query) throws Exception {
         return replaceDocumentHandler.handle(query);
     }
 

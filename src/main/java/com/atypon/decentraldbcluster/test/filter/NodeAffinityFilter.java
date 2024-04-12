@@ -7,6 +7,7 @@ import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.test.builder.DocumentQueryBuilder;
 import com.atypon.decentraldbcluster.secuirty.JwtService;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -46,12 +47,12 @@ public class NodeAffinityFilter implements Filter {
 
         try {
             Query query = getQueryFromBuilder(jwtService.getUserId(request), requestParts);
-            Document document = queryExecutor.exec(query, Document.class);
-            if (!isAssignedNode(document)) {
-                redirectToAffinity(response, requestURI, document.getAffinityPort());
+            JsonNode document = queryExecutor.exec(query, JsonNode.class);
+            int documentAffinityPort = extractNodePortFromDocumentId(document.get("object_id").asText());
+            if (documentAffinityPort != NodeConfiguration.getCurrentNodePort()) {
+                redirectToAffinity(response, requestURI, documentAffinityPort);
                 return;
             }
-            request.setAttribute("document", document);
             chain.doFilter(request, response);
         } catch (ResourceNotFoundException e) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
@@ -70,8 +71,11 @@ public class NodeAffinityFilter implements Filter {
                 .build();
     }
 
-    private boolean isAssignedNode(Document document) {
-        return document.getAffinityPort() == NodeConfiguration.getCurrentNodePort();
+    private int extractNodePortFromDocumentId(String documentId) {
+        int basePort = 8080;
+        // The last digit in the ID represent the node number
+        int nodeNumber = documentId.charAt(documentId.length() - 1) - '0';
+        return basePort + nodeNumber;
     }
 
     private void redirectToAffinity(HttpServletResponse response, String requestURI, int affinityPort) {

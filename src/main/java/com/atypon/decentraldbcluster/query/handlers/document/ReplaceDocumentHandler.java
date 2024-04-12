@@ -7,6 +7,7 @@ import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.atypon.decentraldbcluster.services.DocumentReaderService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.atypon.decentraldbcluster.validation.DocumentValidator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class ReplaceDocumentHandler {
         this.documentReaderService = documentReaderService;
     }
 
-    public Document handle(DocumentQuery query) throws Exception {
+    public JsonNode handle(DocumentQuery query) throws Exception {
 
         String collectionPath = PathConstructor.constructCollectionPath(query);
 
@@ -43,12 +44,12 @@ public class ReplaceDocumentHandler {
         replaceDocumentIndexes(document, documentPath);
         saveDocument(document, documentPath);
 
-        return document;
+        return document.getContent();
     }
 
     private Document getModifedDocument(DocumentQuery query) throws Exception {
         Document document = documentReaderService.findDocumentById(query);
-        document.setContent(query.getNewContent());
+        document.setContent( document.appendIdToContent(query.getNewContent(), document.getId()) );
         document.incrementVersion();
         return document;
     }

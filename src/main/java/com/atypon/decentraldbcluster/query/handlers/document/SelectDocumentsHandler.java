@@ -32,7 +32,7 @@ public class SelectDocumentsHandler {
         String collectionPath = PathConstructor.constructCollectionPath(query);
 
         if (isSelectByIdQuery(query)) {
-            return documentReaderService.findDocumentById(query);
+            return documentReaderService.findDocumentById(query).getContent();
         } else {
             return selectByContent(query, collectionPath);
         }
@@ -45,7 +45,7 @@ public class SelectDocumentsHandler {
         return query.getDocumentId() != null;
     }
 
-    private List<Document> selectByContent(DocumentQuery query, String collectionPath) throws Exception {
+    private List<JsonNode> selectByContent(DocumentQuery query, String collectionPath) throws Exception {
 
         String mostSelectiveIndexField = filterService.getMostSelectiveIndexFiled(query.getCondition(), collectionPath);
 
@@ -60,12 +60,12 @@ public class SelectDocumentsHandler {
         return mostSelectiveIndexField == null;
     }
 
-    private List<Document> filterAllCollectionDocuments(JsonNode condition, String collectionPath) throws IOException {
+    private List<JsonNode> filterAllCollectionDocuments(JsonNode condition, String collectionPath) throws IOException {
         List<Document> documents = documentReaderService.readDocumentsByCollectionPath(collectionPath);
         return filterService.filterDocuments(documents, condition);
     }
 
-    private List<Document> filterDocumentsFromMostSelectiveIndex(String mostSelectiveIndexField, JsonNode condition, String collectionPath) throws Exception {
+    private List<JsonNode> filterDocumentsFromMostSelectiveIndex(String mostSelectiveIndexField, JsonNode condition, String collectionPath) throws Exception {
         String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, mostSelectiveIndexField);
         Index mostSelectiveIndex = fileSystemService.loadIndex(indexPath);
         Set<String> indexPointers = mostSelectiveIndex.getPointers( condition.get(mostSelectiveIndexField) );

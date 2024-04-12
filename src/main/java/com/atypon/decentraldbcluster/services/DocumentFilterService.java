@@ -23,13 +23,13 @@ public class DocumentFilterService {
     }
 
 
-    public List<Document> filterDocuments(List<Document> documents, JsonNode filter) {
+    public List<JsonNode> filterDocuments(List<Document> documents, JsonNode filter) {
 
-        List<Document> filteredDocuments = new ArrayList<>();
+        List<JsonNode> filteredDocuments = new ArrayList<>();
 
         for (var document: documents) {
             if (isDocumentMatch(filter, document.getContent()))
-                filteredDocuments.add(document);
+                filteredDocuments.add(document.getContent());
         }
 
         return filteredDocuments;

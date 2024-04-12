@@ -24,16 +24,6 @@ public class JwtService {
                 .getSubject();
     }
 
-    public String getUsernameFromToken(String token) throws JWTVerificationException {
-        return getJwt(token)
-                .getClaim("username").asString();
-    }
-
-    public String getEmailFromToken(String token) throws JWTVerificationException {
-        return getJwt(token)
-                .getClaim("email").asString();
-    }
-
     private DecodedJWT getJwt(String token) throws JWTVerificationException {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         JWTVerifier verifier = JWT.require(algorithm).build();
