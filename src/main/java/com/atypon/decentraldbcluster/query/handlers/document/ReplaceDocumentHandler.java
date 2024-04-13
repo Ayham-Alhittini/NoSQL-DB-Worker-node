@@ -33,13 +33,14 @@ public class ReplaceDocumentHandler {
 
         documentValidator.validateDocument(query.getNewContent(), collectionPath, true);
 
-        Document document = getModifedDocument(query);
-        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, query.getDocumentId());
+        documentIndexService.deleteDocumentFromIndexes(documentPath);
 
-        replaceDocumentIndexes(document, documentPath);
-        documentPersistenceManager.saveDocument(documentPath, document);
+        Document modifedDocument = getModifedDocument(query);
+        documentIndexService.insertToAllDocumentIndexes(modifedDocument, documentPath);
+        documentPersistenceManager.saveDocument(documentPath, modifedDocument);
 
-        return document.getContent();
+        return modifedDocument.getContent();
     }
 
     private Document getModifedDocument(DocumentQuery query) throws Exception {
@@ -47,10 +48,5 @@ public class ReplaceDocumentHandler {
         document.setContent( document.appendIdToContent(query.getNewContent(), document.getId()) );
         document.incrementVersion();
         return document;
-    }
-
-    private void replaceDocumentIndexes(Document document, String documentPath) throws Exception {
-        documentIndexService.deleteDocumentFromIndexes(documentPath);
-        documentIndexService.insertToAllDocumentIndexes(document, documentPath);
     }
 }
