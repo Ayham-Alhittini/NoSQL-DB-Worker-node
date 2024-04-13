@@ -1,9 +1,9 @@
-package com.atypon.decentraldbcluster.config;
+package com.atypon.decentraldbcluster.communication.config;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class NodeConfiguration {
+public class NodeCommunicationConfiguration {
 
     //Production
 //    private static final String baseNodeAddress = "http://host.docker.internal:";
@@ -41,10 +41,10 @@ public class NodeConfiguration {
     }
 
     public static void setCurrentNodePort(int currentNodePort) {
-        NodeConfiguration.currentNodePort = currentNodePort;
+        NodeCommunicationConfiguration.currentNodePort = currentNodePort;
     }
 
     public static void setOtherNodesPort(List<Integer> otherNodesPort) {
-        NodeConfiguration.otherNodesPort = otherNodesPort;
+        NodeCommunicationConfiguration.otherNodesPort = otherNodesPort;
     }
 }

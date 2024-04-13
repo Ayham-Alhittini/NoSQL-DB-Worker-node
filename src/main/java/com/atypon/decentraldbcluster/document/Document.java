@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.entity;
+package com.atypon.decentraldbcluster.document;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -57,5 +57,13 @@ public class Document implements Serializable {
             temp.set(field.getKey(), field.getValue());
         }
         return temp;
+    }
+
+    @Override
+    public String toString() {
+        return "Document{" +
+                "content=" + content +
+                ", version=" + version +
+                '}';
     }
 }

@@ -1,13 +1,12 @@
 package com.atypon.decentraldbcluster.test.api;
 
-import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
 import com.atypon.decentraldbcluster.test.builder.DocumentQueryBuilder;
 import com.atypon.decentraldbcluster.query.executors.DocumentQueryExecutor;
 import com.atypon.decentraldbcluster.secuirty.JwtService;
-import com.atypon.decentraldbcluster.services.BroadcastService;
+import com.atypon.decentraldbcluster.communication.braodcast.BroadcastService;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

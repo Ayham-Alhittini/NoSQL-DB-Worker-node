@@ -1,6 +1,6 @@
-package com.atypon.decentraldbcluster.services;
+package com.atypon.decentraldbcluster.communication.braodcast;
 
-import com.atypon.decentraldbcluster.config.NodeConfiguration;
+import com.atypon.decentraldbcluster.communication.config.NodeCommunicationConfiguration;
 import com.atypon.decentraldbcluster.query.types.Query;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpEntity;
@@ -20,10 +20,10 @@ public class BroadcastService {
         headers.add("Authorization", request.getHeader("Authorization"));
         HttpEntity<Object> requestEntity = new HttpEntity<>(query, headers);
 
-        for (Integer port: NodeConfiguration.getOtherNodesPort()) {
+        for (Integer port: NodeCommunicationConfiguration.getOtherNodesPort()) {
 
             String prefixBroadcastUrl = "/internal/api/broadcast/";
-            String requestUrl = NodeConfiguration.getNodeAddress(port) + prefixBroadcastUrl +  endpoint;
+            String requestUrl = NodeCommunicationConfiguration.getNodeAddress(port) + prefixBroadcastUrl +  endpoint;
 
             restTemplate.exchange( requestUrl , HttpMethod.POST, requestEntity, Void.class);
         }

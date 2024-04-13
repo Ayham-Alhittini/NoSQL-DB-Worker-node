@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.lock;
 
-import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.document.Document;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentHashMap;

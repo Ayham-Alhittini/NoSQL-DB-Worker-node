@@ -1,12 +1,12 @@
 package com.atypon.decentraldbcluster.api;
 
-import com.atypon.decentraldbcluster.affinity.DocumentAffinityDispatcher;
+import com.atypon.decentraldbcluster.communication.affinity.DocumentAffinityDispatcher;
 import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.CollectionQuery;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
 import com.atypon.decentraldbcluster.query.executors.DocumentQueryExecutor;
 import com.atypon.decentraldbcluster.query.types.IndexQuery;
-import com.atypon.decentraldbcluster.services.BroadcastService;
+import com.atypon.decentraldbcluster.communication.braodcast.BroadcastService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

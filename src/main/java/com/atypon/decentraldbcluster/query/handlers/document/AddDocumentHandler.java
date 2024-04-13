@@ -1,34 +1,29 @@
 package com.atypon.decentraldbcluster.query.handlers.document;
 
-import com.atypon.decentraldbcluster.affinity.AffinityLoadBalancer;
-import com.atypon.decentraldbcluster.disk.FileSystemService;
-import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.communication.affinity.AffinityLoadBalancer;
+import com.atypon.decentraldbcluster.document.Document;
+import com.atypon.decentraldbcluster.document.DocumentIndexService;
+import com.atypon.decentraldbcluster.persistence.DocumentPersistenceManager;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
-import com.atypon.decentraldbcluster.services.DocumentIndexService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.atypon.decentraldbcluster.validation.DocumentValidator;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
 
 @Service
 public class AddDocumentHandler {
 
-    private final ObjectMapper mapper;
     private final DocumentValidator documentValidator;
-    private final FileSystemService fileSystemService;
     private final DocumentIndexService documentIndexService;
     private final AffinityLoadBalancer affinityLoadBalancer;
+    private final DocumentPersistenceManager documentPersistenceManager;
 
-    public AddDocumentHandler(ObjectMapper mapper, DocumentValidator documentValidator, FileSystemService fileSystemService,
-                              DocumentIndexService documentIndexService, AffinityLoadBalancer affinityLoadBalancer) {
-        this.mapper = mapper;
+    public AddDocumentHandler(DocumentValidator documentValidator, DocumentIndexService documentIndexService,
+                              AffinityLoadBalancer affinityLoadBalancer, DocumentPersistenceManager documentPersistenceManager) {
         this.documentValidator = documentValidator;
-        this.fileSystemService = fileSystemService;
         this.documentIndexService = documentIndexService;
         this.affinityLoadBalancer = affinityLoadBalancer;
+        this.documentPersistenceManager = documentPersistenceManager;
     }
 
     public JsonNode handle(DocumentQuery query) throws Exception {
@@ -41,7 +36,7 @@ public class AddDocumentHandler {
         query.setDocumentId(document.getId());
 
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
-        saveDocument(document, documentPath);
+        documentPersistenceManager.saveDocument(documentPath, document);
         documentIndexService.insertToAllDocumentIndexes(document, documentPath);
 
         return document.getContent();
@@ -56,9 +51,5 @@ public class AddDocumentHandler {
         } else {
             return new Document(query.getContent(), query.getDocumentId());
         }
-    }
-
-    private void saveDocument(Document document, String documentPath) throws IOException {
-        fileSystemService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
     }
 }

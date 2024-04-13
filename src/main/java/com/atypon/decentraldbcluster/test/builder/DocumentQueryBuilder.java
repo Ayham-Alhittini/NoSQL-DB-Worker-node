@@ -1,6 +1,5 @@
 package com.atypon.decentraldbcluster.test.builder;
 
-import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.actions.DocumentAction;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
 import com.fasterxml.jackson.databind.JsonNode;

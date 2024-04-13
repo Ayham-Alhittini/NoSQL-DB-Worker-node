@@ -139,7 +139,7 @@ public class FileSystemService {
         resourcesLock.lockWriteResource(indexPath);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(indexPath))) {
             out.writeObject(index);
-        } finally {
+        }  finally {
             resourcesLock.releaseWriteResource(indexPath);
         }
     }

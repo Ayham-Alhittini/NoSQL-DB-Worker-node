@@ -1,11 +1,11 @@
 package com.atypon.decentraldbcluster.query.executors;
 
-import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.document.Document;
 import com.atypon.decentraldbcluster.lock.OptimisticLocking;
 import com.atypon.decentraldbcluster.query.actions.DocumentAction;
 import com.atypon.decentraldbcluster.query.handlers.document.DocumentHandler;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
-import com.atypon.decentraldbcluster.services.DocumentReaderService;
+import com.atypon.decentraldbcluster.document.DocumentQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component;
 public class DocumentQueryExecutor implements Executable<DocumentQuery> {
     private final DocumentHandler documentHandler;
     private final OptimisticLocking optimisticLocking;
-    private final DocumentReaderService documentReaderService;
+    private final DocumentQueryService documentReaderService;
 
     @Autowired
     public DocumentQueryExecutor(DocumentHandler documentHandler, OptimisticLocking optimisticLocking,
-                                 DocumentReaderService documentReaderService) {
+                                 DocumentQueryService documentReaderService) {
         this.documentHandler = documentHandler;
         this.optimisticLocking = optimisticLocking;
         this.documentReaderService = documentReaderService;

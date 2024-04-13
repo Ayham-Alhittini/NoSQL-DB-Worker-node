@@ -1,6 +1,5 @@
 package com.atypon.decentraldbcluster.test.api;
 
-import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.test.builder.DocumentQueryBuilder;

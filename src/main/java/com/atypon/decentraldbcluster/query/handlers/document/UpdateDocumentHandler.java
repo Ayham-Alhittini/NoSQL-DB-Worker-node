@@ -1,36 +1,31 @@
 package com.atypon.decentraldbcluster.query.handlers.document;
 
-import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.document.Document;
+import com.atypon.decentraldbcluster.document.DocumentIndexService;
+import com.atypon.decentraldbcluster.document.DocumentQueryService;
+import com.atypon.decentraldbcluster.persistence.DocumentPersistenceManager;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
-import com.atypon.decentraldbcluster.services.DocumentIndexService;
-import com.atypon.decentraldbcluster.disk.FileSystemService;
-import com.atypon.decentraldbcluster.services.DocumentReaderService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.atypon.decentraldbcluster.validation.DocumentValidator;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-
 @Service
 public class UpdateDocumentHandler {
-    private final ObjectMapper mapper;
     private final DocumentValidator documentValidator;
-    private final FileSystemService fileSystemService;
+    private final DocumentQueryService documentReaderService;
     private final DocumentIndexService documentIndexService;
-    private final DocumentReaderService documentReaderService;
+    private final DocumentPersistenceManager documentPersistenceManager;
 
     @Autowired
-    public UpdateDocumentHandler(ObjectMapper mapper, DocumentValidator documentValidator, FileSystemService fileSystemService,
-                                 DocumentIndexService documentIndexService, DocumentReaderService documentReaderService) {
-        this.mapper = mapper;
+    public UpdateDocumentHandler(DocumentValidator documentValidator, DocumentIndexService documentIndexService,
+                                 DocumentQueryService documentReaderService, DocumentPersistenceManager documentPersistenceManager) {
         this.documentValidator = documentValidator;
-        this.fileSystemService = fileSystemService;
         this.documentIndexService = documentIndexService;
         this.documentReaderService = documentReaderService;
+        this.documentPersistenceManager = documentPersistenceManager;
     }
 
     public JsonNode handle(DocumentQuery query) throws Exception {
@@ -40,11 +35,12 @@ public class UpdateDocumentHandler {
         documentValidator.validateDocument(query.getNewContent(), collectionPath, false);
 
         Document document = documentReaderService.findDocumentById(query);
+        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
 
         // Need to pass the old document, so updateIndexes track changes
         documentIndexService.updateIndexes(document, query.getNewContent(), collectionPath);
         updateDocument(document, query.getNewContent());
-        saveDocument(document, collectionPath);
+        documentPersistenceManager.saveDocument(documentPath, document);
 
         return document.getContent();
     }
@@ -60,10 +56,5 @@ public class UpdateDocumentHandler {
         ObjectNode newDocument = (ObjectNode) oldDocument;
         requestBody.fields().forEachRemaining(field -> newDocument.set(field.getKey(), field.getValue()));
         return newDocument;
-    }
-
-    private void saveDocument(Document document, String collectionPath) throws IOException {
-        String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
-        fileSystemService.saveFile( mapper.valueToTree(document).toPrettyString() , documentPath);
     }
 }

@@ -1,8 +1,8 @@
-package com.atypon.decentraldbcluster.services;
+package com.atypon.decentraldbcluster.document;
 
-import com.atypon.decentraldbcluster.disk.FileSystemService;
-import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.index.Index;
+import com.atypon.decentraldbcluster.persistence.DocumentPersistenceManager;
+import com.atypon.decentraldbcluster.persistence.IndexPersistenceManager;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +15,16 @@ import java.util.List;
 
 @Service
 public class DocumentIndexService {
-
-    private final FileSystemService fileSystemService;
-    private final DocumentReaderService documentReaderService;
+    private final DocumentQueryService documentReaderService;
+    private final IndexPersistenceManager indexPersistenceManager;
+    private final DocumentPersistenceManager documentPersistenceManager;
 
     @Autowired
-    public DocumentIndexService(DocumentReaderService documentService, FileSystemService fileSystemService) {
-        this.fileSystemService = fileSystemService;
+    public DocumentIndexService(DocumentQueryService documentService, IndexPersistenceManager indexPersistenceManager,
+                                DocumentPersistenceManager documentPersistenceManager) {
         this.documentReaderService = documentService;
+        this.indexPersistenceManager = indexPersistenceManager;
+        this.documentPersistenceManager = documentPersistenceManager;
     }
 
     public void createIndex(String collectionPath, String field) throws Exception {
@@ -39,11 +41,11 @@ public class DocumentIndexService {
             }
         }
         if (!findAtLeastOneDocumentWithTheFiled) throw new IllegalArgumentException("Field not exists");
-        fileSystemService.saveIndex(index, indexPath);
+        indexPersistenceManager.saveIndex(indexPath, index);
     }
 
     public void deleteDocumentFromIndexes(String documentPointer) throws Exception {
-        Document document = documentReaderService.readDocument(documentPointer);
+        Document document = documentPersistenceManager.loadDocument(documentPointer);
         String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(documentPointer);
         List<String> indexedFields = getIndexedFields(document.getContent(), collectionPath);
 
@@ -57,7 +59,7 @@ public class DocumentIndexService {
         List<String> indexedFields = getIndexedFields(requestBody, collectionPath);
         for (String field : indexedFields) {
             String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
-            Index index = fileSystemService.loadIndex(indexPath);
+            Index index = indexPersistenceManager.loadIndex(indexPath);
             JsonNode oldKey = document.getContent().get(field);
             JsonNode newKey = requestBody.get(field);
             String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
@@ -65,7 +67,7 @@ public class DocumentIndexService {
             if (!oldKey.equals(newKey)) { // Only update if the key has changed
                 index.removePointer(oldKey, documentPath);
                 index.addPointer(newKey, documentPath);
-                fileSystemService.saveIndex(index, indexPath);
+                indexPersistenceManager.saveIndex(indexPath, index);
             }
         }
     }
@@ -93,15 +95,15 @@ public class DocumentIndexService {
     }
 
     public void addToIndex(String indexPath, JsonNode key, String valuePath) throws Exception {
-        Index index = fileSystemService.loadIndex(indexPath);
+        Index index = indexPersistenceManager.loadIndex(indexPath);
         index.addPointer(key, valuePath);
-        fileSystemService.saveIndex(index, indexPath);
+        indexPersistenceManager.saveIndex(indexPath, index);
     }
 
     public void removeFromIndex(String indexPath, JsonNode key, String valuePath) throws Exception {
-        Index index = fileSystemService.loadIndex(indexPath);
+        Index index = indexPersistenceManager.loadIndex(indexPath);
         index.removePointer(key, valuePath);
-        fileSystemService.saveIndex(index, indexPath);
+        indexPersistenceManager.saveIndex(indexPath, index);
     }
 
 }

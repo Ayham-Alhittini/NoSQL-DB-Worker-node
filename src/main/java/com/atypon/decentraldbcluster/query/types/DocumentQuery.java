@@ -1,8 +1,6 @@
 package com.atypon.decentraldbcluster.query.types;
 
-import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.actions.DocumentAction;
-import com.atypon.decentraldbcluster.query.types.Query;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class DocumentQuery extends Query {

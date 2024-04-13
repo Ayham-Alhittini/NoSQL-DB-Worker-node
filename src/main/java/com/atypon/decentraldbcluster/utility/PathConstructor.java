@@ -6,7 +6,7 @@ import com.atypon.decentraldbcluster.query.types.Query;
 import java.nio.file.Paths;
 
 public class PathConstructor {
-    private static final String baseDirectory = "./storage/";
+    private static final String baseDirectory = "./node-storage/";
 
     public static String getRootDirectory() {
         return baseDirectory;

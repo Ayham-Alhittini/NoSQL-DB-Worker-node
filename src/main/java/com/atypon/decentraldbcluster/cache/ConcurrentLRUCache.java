@@ -2,13 +2,14 @@ package com.atypon.decentraldbcluster.cache;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class ConcurrentLRUCache<Key, Value> implements Cache<Key, Value> {
     private static final int DEFAULT_CAPACITY = 100;
     private final int capacity;
     private final Map<Key, Node<Key, Value>> cache = new HashMap<>();
     private Node<Key, Value> head, tail;
+
+
 
     public ConcurrentLRUCache() {
         this(DEFAULT_CAPACITY);
@@ -19,13 +20,13 @@ public class ConcurrentLRUCache<Key, Value> implements Cache<Key, Value> {
     }
 
     @Override
-    public synchronized Optional<Value> get(Key key) {
+    public synchronized Value get(Key key) {
         if (!cache.containsKey(key)) {
-            return Optional.empty();
+            return null;
         }
         Node<Key, Value> node = cache.get(key);
         moveToHead(node);
-        return Optional.of(node.value);
+        return node.value;
     }
 
     @Override

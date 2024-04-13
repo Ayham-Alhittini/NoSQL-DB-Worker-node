@@ -1,7 +1,6 @@
-package com.atypon.decentraldbcluster.services;
+package com.atypon.decentraldbcluster.document;
 
-import com.atypon.decentraldbcluster.disk.FileSystemService;
-import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.persistence.IndexPersistenceManager;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +12,13 @@ import java.util.List;
 @Service
 public class DocumentFilterService {
 
-    private final FileSystemService fileSystemService;
     private final DocumentIndexService documentIndexService;
+    private final IndexPersistenceManager indexPersistenceManager;
 
     @Autowired
-    public DocumentFilterService(FileSystemService fileSystemService, DocumentIndexService documentIndexService) {
-        this.fileSystemService = fileSystemService;
+    public DocumentFilterService(DocumentIndexService documentIndexService, IndexPersistenceManager indexPersistenceManager) {
         this.documentIndexService = documentIndexService;
+        this.indexPersistenceManager = indexPersistenceManager;
     }
 
 
@@ -58,7 +57,7 @@ public class DocumentFilterService {
         String mostSelectiveIndex = null;
 
         for (String field: indexedFields) {
-            var index = fileSystemService.loadIndex( PathConstructor.constructUserGeneratedIndexPath(collectionPath, field) );
+            var index = indexPersistenceManager.loadIndex( PathConstructor.constructUserGeneratedIndexPath(collectionPath, field) );
 
             var pointers = index.getPointers( filter.get(field) );
 

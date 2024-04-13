@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.api;
 
-import com.atypon.decentraldbcluster.config.NodeConfiguration;
+import com.atypon.decentraldbcluster.communication.config.NodeCommunicationConfiguration;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,10 +17,10 @@ public class BootstrapController {
 
     @PostMapping("/initializeNode")
     public void initializeNode(@RequestBody JsonNode initialConfiguration) {
-        NodeConfiguration.setCurrentNodePort(initialConfiguration.get("currentNodePort").asInt());
+        NodeCommunicationConfiguration.setCurrentNodePort(initialConfiguration.get("currentNodePort").asInt());
 
         List<Integer> otherPortsNumber = getPortsNumber(initialConfiguration.get("otherNodesPort"));
-        NodeConfiguration.setOtherNodesPort(otherPortsNumber);
+        NodeCommunicationConfiguration.setOtherNodesPort(otherPortsNumber);
     }
 
     private List<Integer> getPortsNumber(JsonNode arrayNode) {

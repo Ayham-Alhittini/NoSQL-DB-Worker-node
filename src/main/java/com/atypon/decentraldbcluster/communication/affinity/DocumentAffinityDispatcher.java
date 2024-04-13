@@ -1,6 +1,6 @@
-package com.atypon.decentraldbcluster.affinity;
+package com.atypon.decentraldbcluster.communication.affinity;
 
-import com.atypon.decentraldbcluster.config.NodeConfiguration;
+import com.atypon.decentraldbcluster.communication.config.NodeCommunicationConfiguration;
 import com.atypon.decentraldbcluster.query.actions.DocumentAction;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,17 +15,15 @@ public class DocumentAffinityDispatcher {
 
     public boolean shouldBeDispatchedToAffinity(DocumentQuery query) {
         if (query.getDocumentId() == null) return false;
-        int queryNodePort = extractNodePortFromDocumentId(query.getDocumentId());
-        int currentNodePort = NodeConfiguration.getCurrentNodePort();
+        int documentAffinityPort = extractNodePortFromDocumentId(query.getDocumentId());
+        int currentPort = NodeCommunicationConfiguration.getCurrentNodePort();
 
-        DocumentAction action = query.getDocumentAction();
-
-        return  (action != DocumentAction.SELECT && action != DocumentAction.ADD) && queryNodePort != currentNodePort;
+        return  isWriteQuery(query) && (documentAffinityPort != currentPort);
     }
 
     public Object dispatchToAffinity(HttpServletRequest request, DocumentQuery query) {
         int affinityPort = extractNodePortFromDocumentId(query.getDocumentId());
-        String affinityUrl = NodeConfiguration.getNodeAddress(affinityPort) + "/api/query/documentQueries";
+        String affinityUrl = NodeCommunicationConfiguration.getNodeAddress(affinityPort) + "/api/query/documentQueries";
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -41,6 +39,11 @@ public class DocumentAffinityDispatcher {
         // The last digit in the ID represents the node number
         int nodeNumber = documentId.charAt(documentId.length() - 1) - '0';
         return basePort + nodeNumber;
+    }
+
+    private boolean isWriteQuery(DocumentQuery query) {
+        DocumentAction action = query.getDocumentAction();
+        return action != DocumentAction.ADD && action != DocumentAction.SELECT;
     }
 
 

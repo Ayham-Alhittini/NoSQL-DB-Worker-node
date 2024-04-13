@@ -4,7 +4,7 @@ import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.test.builder.IndexQueryBuilder;
 import com.atypon.decentraldbcluster.secuirty.JwtService;
-import com.atypon.decentraldbcluster.services.BroadcastService;
+import com.atypon.decentraldbcluster.communication.braodcast.BroadcastService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

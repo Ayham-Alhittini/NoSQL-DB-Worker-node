@@ -1,19 +1,19 @@
 package com.atypon.decentraldbcluster.query.handlers.document;
 
-import com.atypon.decentraldbcluster.disk.FileSystemService;
+import com.atypon.decentraldbcluster.document.DocumentIndexService;
+import com.atypon.decentraldbcluster.persistence.DocumentPersistenceManager;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
-import com.atypon.decentraldbcluster.services.DocumentIndexService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DeleteDocumentHandler {
-    private final FileSystemService fileSystemService;
     private final DocumentIndexService documentIndexService;
+    private final DocumentPersistenceManager documentPersistenceManager;
     @Autowired
-    public DeleteDocumentHandler(FileSystemService fileSystemService, DocumentIndexService documentIndexService) {
-        this.fileSystemService = fileSystemService;
+    public DeleteDocumentHandler(DocumentIndexService documentIndexService, DocumentPersistenceManager documentPersistenceManager) {
+        this.documentPersistenceManager = documentPersistenceManager;
         this.documentIndexService = documentIndexService;
     }
 
@@ -23,7 +23,7 @@ public class DeleteDocumentHandler {
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, query.getDocumentId());
 
         documentIndexService.deleteDocumentFromIndexes(documentPath);
-        fileSystemService.deleteFile(documentPath);
+        documentPersistenceManager.removeDocument(documentPath);
     }
 
 }

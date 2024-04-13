@@ -1,8 +1,8 @@
 package com.atypon.decentraldbcluster.query.handlers.index;
 
+import com.atypon.decentraldbcluster.document.DocumentIndexService;
+import com.atypon.decentraldbcluster.persistence.IndexPersistenceManager;
 import com.atypon.decentraldbcluster.query.types.IndexQuery;
-import com.atypon.decentraldbcluster.services.DocumentIndexService;
-import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,13 +11,13 @@ import java.io.IOException;
 
 @Service
 public class IndexHandler {
-    private final FileSystemService fileSystemService;
     private final DocumentIndexService documentIndexService;
+    private final IndexPersistenceManager indexPersistenceManager;
 
     @Autowired
-    public IndexHandler(DocumentIndexService documentIndexService, FileSystemService fileSystemService) {
-        this.fileSystemService = fileSystemService;
+    public IndexHandler(DocumentIndexService documentIndexService, IndexPersistenceManager indexPersistenceManager) {
         this.documentIndexService = documentIndexService;
+        this.indexPersistenceManager = indexPersistenceManager;
     }
 
     // TODO: handle field not exists for handleCreateIndex
@@ -31,7 +31,7 @@ public class IndexHandler {
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, query.getField());
 
-        fileSystemService.deleteFile(indexPath);
+        indexPersistenceManager.removeIndex(indexPath);
         return null;
     }
 }

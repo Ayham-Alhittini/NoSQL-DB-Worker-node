@@ -1,29 +1,28 @@
 package com.atypon.decentraldbcluster.query.handlers.document;
 
-import com.atypon.decentraldbcluster.disk.FileSystemService;
-import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.document.Document;
+import com.atypon.decentraldbcluster.document.DocumentFilterService;
+import com.atypon.decentraldbcluster.document.DocumentQueryService;
 import com.atypon.decentraldbcluster.index.Index;
+import com.atypon.decentraldbcluster.persistence.IndexPersistenceManager;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
-import com.atypon.decentraldbcluster.services.DocumentFilterService;
-import com.atypon.decentraldbcluster.services.DocumentReaderService;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
 @Service
 public class SelectDocumentsHandler {
-    private final FileSystemService fileSystemService;
     private final DocumentFilterService filterService;
-    private final DocumentReaderService documentReaderService;
+    private final DocumentQueryService documentQueryService;
+    private final IndexPersistenceManager indexPersistenceManager;
 
-    public SelectDocumentsHandler(DocumentFilterService filterService, DocumentReaderService documentReaderService, FileSystemService fileSystemService) {
+    public SelectDocumentsHandler(DocumentFilterService filterService, DocumentQueryService documentQueryService, IndexPersistenceManager indexPersistenceManager) {
         this.filterService = filterService;
-        this.documentReaderService = documentReaderService;
-        this.fileSystemService = fileSystemService;
+        this.documentQueryService = documentQueryService;
+        this.indexPersistenceManager = indexPersistenceManager;
     }
 
 
@@ -32,7 +31,7 @@ public class SelectDocumentsHandler {
         String collectionPath = PathConstructor.constructCollectionPath(query);
 
         if (isSelectByIdQuery(query)) {
-            return documentReaderService.findDocumentById(query).getContent();
+            return documentQueryService.findDocumentById(query).getContent();
         } else {
             return selectByContent(query, collectionPath);
         }
@@ -60,16 +59,16 @@ public class SelectDocumentsHandler {
         return mostSelectiveIndexField == null;
     }
 
-    private List<JsonNode> filterAllCollectionDocuments(JsonNode condition, String collectionPath) throws IOException {
-        List<Document> documents = documentReaderService.readDocumentsByCollectionPath(collectionPath);
+    private List<JsonNode> filterAllCollectionDocuments(JsonNode condition, String collectionPath) throws Exception {
+        List<Document> documents = documentQueryService.readDocumentsByCollectionPath(collectionPath);
         return filterService.filterDocuments(documents, condition);
     }
 
     private List<JsonNode> filterDocumentsFromMostSelectiveIndex(String mostSelectiveIndexField, JsonNode condition, String collectionPath) throws Exception {
         String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, mostSelectiveIndexField);
-        Index mostSelectiveIndex = fileSystemService.loadIndex(indexPath);
+        Index mostSelectiveIndex = indexPersistenceManager.loadIndex(indexPath);
         Set<String> indexPointers = mostSelectiveIndex.getPointers( condition.get(mostSelectiveIndexField) );
-        List<Document> documents = documentReaderService.readDocumentsByDocumentsPathList(indexPointers);
+        List<Document> documents = documentQueryService.readDocumentsByDocumentsPathList(indexPointers);
 
         return filterService.filterDocuments(documents, condition);
     }
