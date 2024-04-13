@@ -14,8 +14,8 @@ public class JsonUtil {
         this.mapper = mapper;
     }
 
-    public String toJsonString(Document document) throws IOException {
-        return mapper.writeValueAsString(document);
+    public String toJsonString(Document document) {
+        return mapper.valueToTree(document).toPrettyString();
     }
 
     public Document fromJsonString(String json) throws IOException {
