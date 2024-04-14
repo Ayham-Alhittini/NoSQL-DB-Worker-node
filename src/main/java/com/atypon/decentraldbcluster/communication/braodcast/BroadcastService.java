@@ -12,7 +12,6 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class BroadcastService {
 
-    //TODO: consider async broadcast
     public void doBroadcast(HttpServletRequest request, String endpoint, Query query) {
         RestTemplate restTemplate = new RestTemplate();
 

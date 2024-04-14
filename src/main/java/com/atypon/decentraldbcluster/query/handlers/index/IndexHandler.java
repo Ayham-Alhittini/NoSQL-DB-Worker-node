@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.query.handlers.index;
 
-import com.atypon.decentraldbcluster.document.DocumentIndexService;
+import com.atypon.decentraldbcluster.document.services.DocumentIndexService;
 import com.atypon.decentraldbcluster.persistence.IndexPersistenceManager;
 import com.atypon.decentraldbcluster.query.types.IndexQuery;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
@@ -20,7 +20,6 @@ public class IndexHandler {
         this.indexPersistenceManager = indexPersistenceManager;
     }
 
-    // TODO: handle field not exists for handleCreateIndex
     public Void handleCreateIndex(IndexQuery query) throws Exception {
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
         documentIndexService.createIndex(collectionPath, query.getField());

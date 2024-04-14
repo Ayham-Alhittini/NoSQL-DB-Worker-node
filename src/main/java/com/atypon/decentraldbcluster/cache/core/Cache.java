@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.cache;
+package com.atypon.decentraldbcluster.cache.core;
 
 public interface Cache<Key, Value> {
     Value get(Key key);

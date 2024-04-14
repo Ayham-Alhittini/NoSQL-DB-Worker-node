@@ -1,9 +1,9 @@
-package com.atypon.decentraldbcluster.cache;
+package com.atypon.decentraldbcluster.cache.core;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ConcurrentLRUCache<Key, Value> implements Cache<Key, Value> {
+public class LRUCache<Key, Value> implements Cache<Key, Value> {
     private static final int DEFAULT_CAPACITY = 100;
     private final int capacity;
     private final Map<Key, Node<Key, Value>> cache = new HashMap<>();
@@ -11,11 +11,11 @@ public class ConcurrentLRUCache<Key, Value> implements Cache<Key, Value> {
 
 
 
-    public ConcurrentLRUCache() {
+    public LRUCache() {
         this(DEFAULT_CAPACITY);
     }
 
-    public ConcurrentLRUCache(int capacity) {
+    public LRUCache(int capacity) {
         this.capacity = capacity;
     }
 

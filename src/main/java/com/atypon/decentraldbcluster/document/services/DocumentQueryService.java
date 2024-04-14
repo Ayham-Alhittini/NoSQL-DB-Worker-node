@@ -1,6 +1,7 @@
-package com.atypon.decentraldbcluster.document;
+package com.atypon.decentraldbcluster.document.services;
 
 import com.atypon.decentraldbcluster.disk.FileSystemService;
+import com.atypon.decentraldbcluster.document.entity.Document;
 import com.atypon.decentraldbcluster.persistence.DocumentPersistenceManager;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
@@ -24,7 +25,7 @@ public class DocumentQueryService {
         this.documentPersistenceManager = documentPersistenceManager;
     }
 
-
+    //Todo: there many unneeded call for this method, that can be replaced with DocumentPersistenceManager
     public Document findDocumentById(DocumentQuery query) throws Exception {
         String documentPath = PathConstructor.constructDocumentPath(query);
         return documentPersistenceManager.loadDocument(documentPath);

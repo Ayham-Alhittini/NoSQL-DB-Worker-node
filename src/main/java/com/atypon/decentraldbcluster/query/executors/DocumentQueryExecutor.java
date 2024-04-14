@@ -1,11 +1,11 @@
 package com.atypon.decentraldbcluster.query.executors;
 
-import com.atypon.decentraldbcluster.document.Document;
+import com.atypon.decentraldbcluster.document.entity.Document;
 import com.atypon.decentraldbcluster.lock.OptimisticLocking;
 import com.atypon.decentraldbcluster.query.actions.DocumentAction;
 import com.atypon.decentraldbcluster.query.handlers.document.DocumentHandler;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
-import com.atypon.decentraldbcluster.document.DocumentQueryService;
+import com.atypon.decentraldbcluster.document.services.DocumentQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

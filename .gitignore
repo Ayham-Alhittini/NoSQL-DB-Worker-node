@@ -33,3 +33,4 @@ build/
 .vscode/
 /storage/
 /backup-storage/
+/node-storage/

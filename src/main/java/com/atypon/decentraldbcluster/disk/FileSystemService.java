@@ -1,7 +1,7 @@
 package com.atypon.decentraldbcluster.disk;
 
 
-import com.atypon.decentraldbcluster.exceptions.ResourceNotFoundException;
+import com.atypon.decentraldbcluster.exceptions.types.ResourceNotFoundException;
 import com.atypon.decentraldbcluster.index.Index;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

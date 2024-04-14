@@ -37,7 +37,7 @@ public class QueryController {
         return queryResult;
     }
 
-
+    //Todo: consider using filter for affinity
     @PostMapping("documentQueries")
     public Object documentQueries(HttpServletRequest request, @RequestBody DocumentQuery query) throws Exception {
         if (dispatcher.shouldBeDispatchedToAffinity(query)) return dispatcher.dispatchToAffinity(request, query);

@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.validation;
 
-import com.atypon.decentraldbcluster.exceptions.ResourceNotFoundException;
+import com.atypon.decentraldbcluster.exceptions.types.ResourceNotFoundException;
 import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

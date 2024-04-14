@@ -1,8 +1,8 @@
 package com.atypon.decentraldbcluster.query.handlers.document;
 
-import com.atypon.decentraldbcluster.document.Document;
-import com.atypon.decentraldbcluster.document.DocumentFilterService;
-import com.atypon.decentraldbcluster.document.DocumentQueryService;
+import com.atypon.decentraldbcluster.document.entity.Document;
+import com.atypon.decentraldbcluster.document.services.DocumentFilterService;
+import com.atypon.decentraldbcluster.document.services.DocumentQueryService;
 import com.atypon.decentraldbcluster.index.Index;
 import com.atypon.decentraldbcluster.persistence.IndexPersistenceManager;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
@@ -15,6 +15,7 @@ import java.util.Set;
 
 @Service
 public class SelectDocumentsHandler {
+    //Todo: too many logic for document handler, suppose move the logic for document services
     private final DocumentFilterService filterService;
     private final DocumentQueryService documentQueryService;
     private final IndexPersistenceManager indexPersistenceManager;

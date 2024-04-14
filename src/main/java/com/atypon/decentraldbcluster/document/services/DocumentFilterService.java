@@ -1,5 +1,6 @@
-package com.atypon.decentraldbcluster.document;
+package com.atypon.decentraldbcluster.document.services;
 
+import com.atypon.decentraldbcluster.document.entity.Document;
 import com.atypon.decentraldbcluster.persistence.IndexPersistenceManager;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,6 +13,7 @@ import java.util.List;
 @Service
 public class DocumentFilterService {
 
+    //Todo: consider maintain the document services
     private final DocumentIndexService documentIndexService;
     private final IndexPersistenceManager indexPersistenceManager;
 

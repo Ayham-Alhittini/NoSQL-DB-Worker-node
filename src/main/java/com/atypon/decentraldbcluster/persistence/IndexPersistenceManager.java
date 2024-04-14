@@ -1,7 +1,7 @@
 package com.atypon.decentraldbcluster.persistence;
 
 
-import com.atypon.decentraldbcluster.cache.IndexCache;
+import com.atypon.decentraldbcluster.cache.index.IndexCache;
 import com.atypon.decentraldbcluster.disk.FileSystemService;
 import com.atypon.decentraldbcluster.index.Index;
 import org.springframework.stereotype.Service;

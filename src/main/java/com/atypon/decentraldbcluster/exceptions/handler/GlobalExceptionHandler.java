@@ -1,5 +1,6 @@
-package com.atypon.decentraldbcluster.exceptions;
+package com.atypon.decentraldbcluster.exceptions.handler;
 
+import com.atypon.decentraldbcluster.exceptions.types.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

@@ -1,8 +1,8 @@
 package com.atypon.decentraldbcluster.query.handlers.document;
 
-import com.atypon.decentraldbcluster.document.Document;
-import com.atypon.decentraldbcluster.document.DocumentIndexService;
-import com.atypon.decentraldbcluster.document.DocumentQueryService;
+import com.atypon.decentraldbcluster.document.entity.Document;
+import com.atypon.decentraldbcluster.document.services.DocumentIndexService;
+import com.atypon.decentraldbcluster.document.services.DocumentQueryService;
 import com.atypon.decentraldbcluster.persistence.DocumentPersistenceManager;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
 import com.atypon.decentraldbcluster.utility.PathConstructor;

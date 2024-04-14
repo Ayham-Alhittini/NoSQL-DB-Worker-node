@@ -1,8 +1,8 @@
 package com.atypon.decentraldbcluster.query.handlers.document;
 
 import com.atypon.decentraldbcluster.communication.affinity.AffinityLoadBalancer;
-import com.atypon.decentraldbcluster.document.Document;
-import com.atypon.decentraldbcluster.document.DocumentIndexService;
+import com.atypon.decentraldbcluster.document.entity.Document;
+import com.atypon.decentraldbcluster.document.services.DocumentIndexService;
 import com.atypon.decentraldbcluster.persistence.DocumentPersistenceManager;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
@@ -32,7 +32,7 @@ public class AddDocumentHandler {
         documentValidator.validateDocument(query.getContent(), collectionPath, true);
 
         Document document = createDocumentWithOptionalAssignedId(query);
-        // To broadcast with same id
+        // Modify query to broadcast with same id
         query.setDocumentId(document.getId());
 
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());

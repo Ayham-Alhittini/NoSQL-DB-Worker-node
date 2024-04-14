@@ -1,8 +1,8 @@
 package com.atypon.decentraldbcluster.persistence;
 
-import com.atypon.decentraldbcluster.cache.DocumentCache;
+import com.atypon.decentraldbcluster.cache.document.DocumentCache;
 import com.atypon.decentraldbcluster.disk.FileSystemService;
-import com.atypon.decentraldbcluster.document.Document;
+import com.atypon.decentraldbcluster.document.entity.Document;
 import com.atypon.decentraldbcluster.utility.JsonUtil;
 import org.springframework.stereotype.Service;
 

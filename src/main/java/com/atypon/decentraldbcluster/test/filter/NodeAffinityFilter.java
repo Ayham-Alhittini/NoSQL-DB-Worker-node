@@ -1,7 +1,7 @@
 package com.atypon.decentraldbcluster.test.filter;
 
 import com.atypon.decentraldbcluster.communication.config.NodeCommunicationConfiguration;
-import com.atypon.decentraldbcluster.exceptions.ResourceNotFoundException;
+import com.atypon.decentraldbcluster.exceptions.types.ResourceNotFoundException;
 import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.test.builder.DocumentQueryBuilder;

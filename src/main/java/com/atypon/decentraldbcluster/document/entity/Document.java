@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.document;
+package com.atypon.decentraldbcluster.document.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;

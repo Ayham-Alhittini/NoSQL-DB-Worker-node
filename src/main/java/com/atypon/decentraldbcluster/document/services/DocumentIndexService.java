@@ -1,5 +1,6 @@
-package com.atypon.decentraldbcluster.document;
+package com.atypon.decentraldbcluster.document.services;
 
+import com.atypon.decentraldbcluster.document.entity.Document;
 import com.atypon.decentraldbcluster.index.Index;
 import com.atypon.decentraldbcluster.persistence.DocumentPersistenceManager;
 import com.atypon.decentraldbcluster.persistence.IndexPersistenceManager;

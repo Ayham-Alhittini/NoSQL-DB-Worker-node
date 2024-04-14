@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.utility;
 
-import com.atypon.decentraldbcluster.document.Document;
+import com.atypon.decentraldbcluster.document.entity.Document;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
