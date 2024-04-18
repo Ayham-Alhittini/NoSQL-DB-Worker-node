@@ -24,14 +24,6 @@ public class NodeCommunicationConfiguration {
         return baseNodeAddress + portNumber;
     }
 
-    public static List<String> getNodesAddress() {
-        List<String> nodesAddress = new ArrayList<>();
-        for (Integer portNumber: otherNodesPort) {
-            nodesAddress.add( getNodeAddress(portNumber) );
-        }
-        return nodesAddress;
-    }
-
     public static int getCurrentNodePort() {
         return currentNodePort;
     }

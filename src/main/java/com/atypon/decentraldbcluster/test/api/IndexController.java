@@ -3,7 +3,7 @@ package com.atypon.decentraldbcluster.test.api;
 import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.test.builder.IndexQueryBuilder;
-import com.atypon.decentraldbcluster.secuirty.JwtService;
+import com.atypon.decentraldbcluster.security.services.JwtService;
 import com.atypon.decentraldbcluster.communication.braodcast.BroadcastService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ public class IndexController {
                 .build();
 
         queryExecutor.exec(query);
-        broadcastService.doBroadcast(request, "index", query);
+        broadcastService.doBroadcast("index", query);
     }
 
     @DeleteMapping("dropIndex/{database}/{collection}/{field}")
@@ -55,7 +55,7 @@ public class IndexController {
                 .build();
 
         queryExecutor.exec(query);
-        broadcastService.doBroadcast(request, "index", query);
+        broadcastService.doBroadcast("index", query);
     }
 
 }

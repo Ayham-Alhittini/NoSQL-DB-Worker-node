@@ -31,9 +31,9 @@ public class QueryController {
     }
 
     @PostMapping("collectionQueries")
-    public Object collectionQueries(HttpServletRequest request, @RequestBody CollectionQuery query) throws Exception {
+    public Object collectionQueries(@RequestBody CollectionQuery query) throws Exception {
         var queryResult = queryExecutor.exec(query);
-        broadcastService.doBroadcast(request, "collection", query);
+        broadcastService.doBroadcast("collection", query);
         return queryResult;
     }
 
@@ -42,14 +42,14 @@ public class QueryController {
     public Object documentQueries(HttpServletRequest request, @RequestBody DocumentQuery query) throws Exception {
         if (dispatcher.shouldBeDispatchedToAffinity(query)) return dispatcher.dispatchToAffinity(request, query);
         var queryResult = documentQueryExecutor.execWithOptimisticLockingForModify(query);
-        broadcastService.doBroadcast(request, "document", query);
+        broadcastService.doBroadcast("document", query);
         return queryResult;
     }
 
 
     @PostMapping("indexQueries")
-    public void indexQueries(HttpServletRequest request, @RequestBody IndexQuery query) throws Exception {
+    public void indexQueries(@RequestBody IndexQuery query) throws Exception {
         queryExecutor.exec(query);
-        broadcastService.doBroadcast(request, "index", query);
+        broadcastService.doBroadcast("index", query);
     }
 }

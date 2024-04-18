@@ -3,7 +3,7 @@ package com.atypon.decentraldbcluster.test.api;
 import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.test.builder.DocumentQueryBuilder;
-import com.atypon.decentraldbcluster.secuirty.JwtService;
+import com.atypon.decentraldbcluster.security.services.JwtService;
 import com.atypon.decentraldbcluster.utility.ListCaster;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;

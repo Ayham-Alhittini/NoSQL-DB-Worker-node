@@ -1,5 +1,7 @@
-package com.atypon.decentraldbcluster.secuirty;
+package com.atypon.decentraldbcluster.security.filters;
 
+import com.atypon.decentraldbcluster.security.urlpattern.ExcludedUrlPattern;
+import com.atypon.decentraldbcluster.security.services.JwtService;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +16,7 @@ import java.util.Optional;
 
 @Component
 @Order(1)
-public class AuthenticationFilter implements Filter {
+public class AuthenticationFilter implements Filter, ExcludedUrlPattern {
 
     private final JwtService jwtService;
 
@@ -24,26 +26,37 @@ public class AuthenticationFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws ServletException, IOException {
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        HttpServletResponse response = (HttpServletResponse) servletResponse;
+
+        // For broadcast endpoint we have different authentication mechanism, handled by BootstrapFilter
+        if (isExcludedUrlPattern(request.getRequestURI())) {
+            chain.doFilter(request, servletResponse);
+            return;
+        }
 
         try {
-            Optional<String> token = extractToken(httpRequest);
+            Optional<String> token = extractToken(request);
 
             if (token.isEmpty() || !isValidToken(token.get())) {
-                httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 return;
             }
 
-            httpRequest.setAttribute("token", token.get());
-            chain.doFilter(request, response);
+            request.setAttribute("token", token.get());
+            chain.doFilter(servletRequest, servletResponse);
 
         } catch (JWTVerificationException | IOException | ServletException e) {
-            httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
         }
     }
 
+
+    @Override
+    public boolean isExcludedUrlPattern(String requestUri) {
+        return requestUri.startsWith("/internal/api/broadcast/");
+    }
 
 
 

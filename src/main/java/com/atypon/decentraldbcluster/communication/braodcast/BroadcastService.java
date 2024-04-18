@@ -2,7 +2,8 @@ package com.atypon.decentraldbcluster.communication.braodcast;
 
 import com.atypon.decentraldbcluster.communication.config.NodeCommunicationConfiguration;
 import com.atypon.decentraldbcluster.query.types.Query;
-import jakarta.servlet.http.HttpServletRequest;
+import com.atypon.decentraldbcluster.security.services.NodeAuthorizationSecretEncryption;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -12,12 +13,22 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class BroadcastService {
 
-    public void doBroadcast(HttpServletRequest request, String endpoint, Query query) {
+    private final NodeAuthorizationSecretEncryption nodeAuthorizationSecretEncryption;
+
+    @Autowired
+    public BroadcastService(NodeAuthorizationSecretEncryption nodeAuthorizationSecretEncryption) {
+        this.nodeAuthorizationSecretEncryption = nodeAuthorizationSecretEncryption;
+    }
+
+    public void doBroadcast(String endpoint, Query query) {
         query.setBroadcastQuery(true);
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", request.getHeader("Authorization"));
+
+        // A custom header for guaranteed only nodes between each other can broadcast
+        headers.add("X-Node-Authorization", nodeAuthorizationSecretEncryption.getNodeAuthenticationKey());
+
         HttpEntity<Object> requestEntity = new HttpEntity<>(query, headers);
 
         for (Integer port: NodeCommunicationConfiguration.getOtherNodesPort()) {
@@ -25,7 +36,7 @@ public class BroadcastService {
             String prefixBroadcastUrl = "/internal/api/broadcast/";
             String requestUrl = NodeCommunicationConfiguration.getNodeAddress(port) + prefixBroadcastUrl +  endpoint;
 
-            restTemplate.exchange( requestUrl , HttpMethod.POST, requestEntity, Void.class);
+            restTemplate.exchange(requestUrl, HttpMethod.POST, requestEntity, Void.class);
         }
     }
 }

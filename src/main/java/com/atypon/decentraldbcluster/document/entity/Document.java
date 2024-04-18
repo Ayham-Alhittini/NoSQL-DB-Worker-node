@@ -12,7 +12,7 @@ import java.util.UUID;
 public class Document implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    private final String DocumentKeyName = "object_id";
+    private final String DOCUMENT_KEY_NAME = "object_id";
     private JsonNode content;
     private int version = 1;
 
@@ -30,7 +30,7 @@ public class Document implements Serializable {
 
     @JsonIgnore
     public String getId() {
-        return content.get(DocumentKeyName).asText();
+        return content.get(DOCUMENT_KEY_NAME).asText();
     }
 
     public JsonNode getContent() {
@@ -51,11 +51,11 @@ public class Document implements Serializable {
 
     public JsonNode appendIdToContent(JsonNode content, String id) {
         ObjectNode temp = new ObjectMapper().createObjectNode();
-        temp.put(DocumentKeyName, id);
+        temp.put(DOCUMENT_KEY_NAME, id);
         var fields = content.fields();
         while (fields.hasNext()) {
             var field = fields.next();
-            if (!DocumentKeyName.equals(field.getKey()))
+            if (!DOCUMENT_KEY_NAME.equals(field.getKey()))
                 temp.set(field.getKey(), field.getValue());
         }
         return temp;

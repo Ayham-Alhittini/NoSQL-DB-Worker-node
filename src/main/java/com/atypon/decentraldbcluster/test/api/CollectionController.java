@@ -3,7 +3,7 @@ package com.atypon.decentraldbcluster.test.api;
 import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.test.builder.CollectionQueryBuilder;
-import com.atypon.decentraldbcluster.secuirty.JwtService;
+import com.atypon.decentraldbcluster.security.services.JwtService;
 import com.atypon.decentraldbcluster.communication.braodcast.BroadcastService;
 import com.atypon.decentraldbcluster.utility.ListCaster;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,7 +42,7 @@ public class CollectionController {
                 .build();
 
         queryExecutor.exec(query);
-        broadcastService.doBroadcast(request, "collection", query);
+        broadcastService.doBroadcast("collection", query);
     }
 
     @DeleteMapping("dropCollection/{database}/{collection}")
@@ -57,7 +57,7 @@ public class CollectionController {
                 .build();
 
         queryExecutor.exec(query);
-        broadcastService.doBroadcast(request, "collection", query);
+        broadcastService.doBroadcast("collection", query);
     }
 
     @GetMapping("showCollections/{database}")

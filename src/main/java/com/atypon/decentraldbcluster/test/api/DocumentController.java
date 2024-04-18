@@ -5,7 +5,7 @@ import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
 import com.atypon.decentraldbcluster.test.builder.DocumentQueryBuilder;
 import com.atypon.decentraldbcluster.query.executors.DocumentQueryExecutor;
-import com.atypon.decentraldbcluster.secuirty.JwtService;
+import com.atypon.decentraldbcluster.security.services.JwtService;
 import com.atypon.decentraldbcluster.communication.braodcast.BroadcastService;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,7 +43,7 @@ public class DocumentController {
 
         JsonNode result = queryExecutor.exec(query, JsonNode.class);
 
-        broadcastService.doBroadcast(request, "document", query);
+        broadcastService.doBroadcast("document", query);
         return result;
     }
 
@@ -60,7 +60,7 @@ public class DocumentController {
                 .build();
 
         queryExecutor.exec(query);
-        broadcastService.doBroadcast(request, "document", query);
+        broadcastService.doBroadcast("document", query);
     }
 
 
@@ -76,7 +76,7 @@ public class DocumentController {
                 .build();
 
         var result = documentQueryExecutor.execWithOptimisticLockingForModify(query);
-        broadcastService.doBroadcast(request, "document", query);
+        broadcastService.doBroadcast("document", query);
         return (JsonNode) result;
     }
 
@@ -92,9 +92,7 @@ public class DocumentController {
                 .build();
 
         var result = documentQueryExecutor.execWithOptimisticLockingForModify(query);
-        broadcastService.doBroadcast(request, "document", query);
+        broadcastService.doBroadcast("document", query);
         return (JsonNode) result;
     }
 }
-
-//TODO: make validation on extra fields as well for addDocument & Update document

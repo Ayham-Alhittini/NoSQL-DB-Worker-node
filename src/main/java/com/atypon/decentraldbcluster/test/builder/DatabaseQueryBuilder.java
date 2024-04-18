@@ -31,7 +31,6 @@ public class DatabaseQueryBuilder implements QueryBuilder {
 
     @Override
     public DatabaseQueryBuilder withDatabase(String database) {
-        //TODO: introduce developer exception error
         throw new UnsupportedOperationException("Use add, remove database for database query");
     }
 

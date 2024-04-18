@@ -3,7 +3,7 @@ package com.atypon.decentraldbcluster.test.api;
 import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.test.builder.DatabaseQueryBuilder;
-import com.atypon.decentraldbcluster.secuirty.JwtService;
+import com.atypon.decentraldbcluster.security.services.JwtService;
 import com.atypon.decentraldbcluster.communication.braodcast.BroadcastService;
 import com.atypon.decentraldbcluster.utility.ListCaster;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,7 +39,7 @@ public class DatabaseController {
                 .build();
 
         queryExecutor.exec(query);
-        broadcastService.doBroadcast(request, "database", query);
+        broadcastService.doBroadcast("database", query);
     }
 
     @DeleteMapping("dropDB/{database}")
@@ -53,7 +53,7 @@ public class DatabaseController {
                 .build();
 
         queryExecutor.exec(query);
-        broadcastService.doBroadcast(request, "database", query);
+        broadcastService.doBroadcast("database", query);
     }
 
     @GetMapping("/showDbs")
