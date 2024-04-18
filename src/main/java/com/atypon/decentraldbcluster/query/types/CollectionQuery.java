@@ -1,7 +1,6 @@
 package com.atypon.decentraldbcluster.query.types;
 
 import com.atypon.decentraldbcluster.query.actions.CollectionAction;
-import com.atypon.decentraldbcluster.query.types.Query;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class CollectionQuery extends Query {
@@ -22,16 +21,5 @@ public class CollectionQuery extends Query {
 
     public void setSchema(JsonNode schema) {
         this.schema = schema;
-    }
-
-    @Override
-    public String toString() {
-        return "CollectionQuery{" +
-                "collectionAction=" + collectionAction +
-                ", schema='" + schema + '\'' +
-                ", originator='" + originator + '\'' +
-                ", database='" + database + '\'' +
-                ", collection='" + collection + '\'' +
-                '}';
     }
 }

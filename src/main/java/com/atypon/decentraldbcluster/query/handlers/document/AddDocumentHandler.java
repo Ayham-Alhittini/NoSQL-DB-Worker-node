@@ -46,10 +46,10 @@ public class AddDocumentHandler {
     // when we add a document we broadcast it, and to guaranty it have same ID we send
     // the document ID in the query
     private Document createDocumentWithOptionalAssignedId(DocumentQuery query) {
-        if (query.getDocumentId() == null) {
-            return new Document(query.getContent(), affinityLoadBalancer.getNextNodeNumber());
-        } else {
+        if (query.isBroadcastQuery()) {
             return new Document(query.getContent(), query.getDocumentId());
+        } else {
+            return new Document(query.getContent(), affinityLoadBalancer.getNextNodeNumber());
         }
     }
 }

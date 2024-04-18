@@ -32,16 +32,13 @@ public class DocumentIndexService {
         List<Document> documents = documentReaderService.readDocumentsByCollectionPath(collectionPath);
         String indexPath = PathConstructor.constructUserGeneratedIndexPath(collectionPath, field);
         Index index = new Index();
-        boolean findAtLeastOneDocumentWithTheFiled = false;
         for (Document document : documents) {
             String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
             if (document.getContent().has(field)) {
                 JsonNode key = document.getContent().get(field);
                 index.addPointer(key, documentPath);
-                findAtLeastOneDocumentWithTheFiled = true;
             }
         }
-        if (!findAtLeastOneDocumentWithTheFiled) throw new IllegalArgumentException("Field not exists");
         indexPersistenceManager.saveIndex(indexPath, index);
     }
 

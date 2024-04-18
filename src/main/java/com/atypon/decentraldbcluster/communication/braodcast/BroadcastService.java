@@ -13,8 +13,9 @@ import org.springframework.web.client.RestTemplate;
 public class BroadcastService {
 
     public void doBroadcast(HttpServletRequest request, String endpoint, Query query) {
-        RestTemplate restTemplate = new RestTemplate();
+        query.setBroadcastQuery(true);
 
+        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", request.getHeader("Authorization"));
         HttpEntity<Object> requestEntity = new HttpEntity<>(query, headers);

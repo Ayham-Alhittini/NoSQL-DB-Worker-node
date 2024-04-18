@@ -1,10 +1,11 @@
 package com.atypon.decentraldbcluster.query.types;
 
-//Implementation for each query type at the query executor
+//Implementation for each query type at the query handlers
 public abstract class Query {
-    protected String originator;
-    protected String database;
-    protected String collection;
+    private String originator;
+    private String database;
+    private String collection;
+    private boolean broadcastQuery;
 
     public String getOriginator() {
         return originator;
@@ -28,5 +29,13 @@ public abstract class Query {
 
     public void setCollection(String collection) {
         this.collection = collection;
+    }
+
+    public boolean isBroadcastQuery() {
+        return broadcastQuery;
+    }
+
+    public void setBroadcastQuery(boolean broadcastQuery) {
+        this.broadcastQuery = broadcastQuery;
     }
 }

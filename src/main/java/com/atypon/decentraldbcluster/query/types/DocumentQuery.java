@@ -51,17 +51,4 @@ public class DocumentQuery extends Query {
     public void setDocumentId(String documentId) {
         this.documentId = documentId;
     }
-
-    @Override
-    public String toString() {
-        return "DocumentQuery{" +
-                "documentAction=" + documentAction +
-                ", condition='" + condition + '\'' +
-                ", content='" + content + '\'' +
-                ", newContent='" + newContent + '\'' +
-                ", originator='" + originator + '\'' +
-                ", database='" + database + '\'' +
-                ", collection='" + collection + '\'' +
-                '}';
-    }
 }

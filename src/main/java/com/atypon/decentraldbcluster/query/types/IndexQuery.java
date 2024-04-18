@@ -1,7 +1,6 @@
 package com.atypon.decentraldbcluster.query.types;
 
 import com.atypon.decentraldbcluster.query.actions.IndexAction;
-import com.atypon.decentraldbcluster.query.types.Query;
 
 public class IndexQuery extends Query {
     private IndexAction indexAction;
@@ -22,16 +21,5 @@ public class IndexQuery extends Query {
 
     public void setField(String field) {
         this.field = field;
-    }
-
-    @Override
-    public String toString() {
-        return "IndexQuery{" +
-                "indexAction=" + indexAction +
-                ", field='" + field + '\'' +
-                ", originator='" + originator + '\'' +
-                ", database='" + database + '\'' +
-                ", collection='" + collection + '\'' +
-                '}';
     }
 }
