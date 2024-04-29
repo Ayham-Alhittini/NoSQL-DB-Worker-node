@@ -19,7 +19,7 @@ public class PathConstructor {
         return Paths.get(getRootDirectory(), query.getOriginator(), query.getDatabase(), query.getCollection()).toString();
     }
 
-    public static String constructUserGeneratedIndexPath(String collectionPath, String fieldName) {
+    public static String constructIndexPath(String collectionPath, String fieldName) {
         return Paths.get(collectionPath, "indexes", fieldName + ".ser").toString();
     }
 

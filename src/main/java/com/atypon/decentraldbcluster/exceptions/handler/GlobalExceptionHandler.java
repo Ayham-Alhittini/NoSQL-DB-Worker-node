@@ -12,7 +12,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    // TODO: consider more custom exception
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
 

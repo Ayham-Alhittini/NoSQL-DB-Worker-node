@@ -13,7 +13,7 @@ import java.util.List;
 public class BootstrapController {
 
 
-    //Todo: consider moving create database into here
+
 
     @PostMapping("/initializeNode")
     public void initializeNode(@RequestBody JsonNode initialConfiguration) {

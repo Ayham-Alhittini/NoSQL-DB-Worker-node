@@ -4,7 +4,6 @@ import com.atypon.decentraldbcluster.query.types.DocumentQuery;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Service;
 
-//Todo: we may need interface that have handle method on in it
 @Service
 public class DocumentHandler {
     private final AddDocumentHandler addDocumentHandler;

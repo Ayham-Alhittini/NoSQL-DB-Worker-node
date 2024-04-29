@@ -1,10 +1,9 @@
 package com.atypon.decentraldbcluster.query.handlers.collection;
 
-import com.atypon.decentraldbcluster.disk.FileSystemService;
+import com.atypon.decentraldbcluster.storage.disk.FileSystemService;
 import com.atypon.decentraldbcluster.query.types.CollectionQuery;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
-import com.atypon.decentraldbcluster.validation.SchemaValidator;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.atypon.decentraldbcluster.schema.SchemaCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,12 +13,12 @@ import java.util.List;
 
 @Service
 public class CollectionHandler {
-    private final SchemaValidator schemaValidator;
+    private final SchemaCreator schemaCreator;
     private final FileSystemService fileSystemService;
 
     @Autowired
-    public CollectionHandler(SchemaValidator schemaValidator, FileSystemService fileSystemService) {
-        this.schemaValidator = schemaValidator;
+    public CollectionHandler(SchemaCreator schemaCreator, FileSystemService fileSystemService) {
+        this.schemaCreator = schemaCreator;
         this.fileSystemService = fileSystemService;
     }
 
@@ -38,21 +37,17 @@ public class CollectionHandler {
     }
 
 
-    private void saveSchemaIfExists(JsonNode schema, String collectionPath) throws IOException {
-        if (schema != null && !schema.isNull())
-            fileSystemService.saveFile(schema.toPrettyString(), Paths.get(collectionPath, "schema.json").toString() );
-    }
-
-
     public Void handleCreateCollection(CollectionQuery query) throws Exception {
 
-        schemaValidator.validateSchemaDataTypesIfExists(query.getSchema());
         String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
 
         fileSystemService.createDirectory(Paths.get(collectionPath, "documents").toString() );
         fileSystemService.createDirectory( Paths.get(collectionPath, "indexes").toString() );
 
-        saveSchemaIfExists(query.getSchema(), collectionPath);
+        if (query.getSchema() != null && !query.getSchema().isNull()) {
+            schemaCreator.validateAndCreateSchema(query.getSchema(), collectionPath);
+        }
+
         return null;
     }
 }

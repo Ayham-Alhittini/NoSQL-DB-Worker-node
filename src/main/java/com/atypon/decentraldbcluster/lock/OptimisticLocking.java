@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.lock;
 
-import com.atypon.decentraldbcluster.document.entity.Document;
+import com.atypon.decentraldbcluster.entity.Document;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,7 +14,7 @@ public class OptimisticLocking {
         AtomicInteger version = getVersion(document);
         return version.compareAndSet(expectedVersion, expectedVersion + 1);
     }
-    public void clearDocumentVersion(String documentId) {
+    public void releaseDocumentVersion(String documentId) {
         documentVersions.remove(documentId);
     }
 

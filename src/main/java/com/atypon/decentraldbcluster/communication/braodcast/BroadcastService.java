@@ -20,7 +20,8 @@ public class BroadcastService {
         this.nodeAuthorizationSecretEncryption = nodeAuthorizationSecretEncryption;
     }
 
-    public void doBroadcast(String endpoint, Query query) {
+    public void doBroadcast(BroadcastType broadcastType, Query query) {
+        String endpoint = broadcastType.toString().toLowerCase();
         query.setBroadcastQuery(true);
 
         RestTemplate restTemplate = new RestTemplate();

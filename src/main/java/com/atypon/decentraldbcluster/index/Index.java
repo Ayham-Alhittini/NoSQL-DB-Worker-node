@@ -55,11 +55,4 @@ public class Index implements Serializable {
     public boolean containsKey(JsonNode jsonNode) {
         return indexMap.containsKey( new IndexKey(jsonNode) );
     }
-
-    @Override
-    public String toString() {
-        return "Index{" +
-                "indexMap=" + indexMap +
-                '}';
-    }
 }

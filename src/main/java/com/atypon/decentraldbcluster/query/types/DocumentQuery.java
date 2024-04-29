@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class DocumentQuery extends Query {
     private String documentId;
+    private int documentAffinityPort; // for broadcast with same affinity node
     private JsonNode content;
     private JsonNode newContent;// for modify query [update, replace]
     private JsonNode condition;
@@ -50,5 +51,13 @@ public class DocumentQuery extends Query {
 
     public void setDocumentId(String documentId) {
         this.documentId = documentId;
+    }
+
+    public int getDocumentAffinityPort() {
+        return documentAffinityPort;
+    }
+
+    public void setDocumentAffinityPort(int documentAffinityPort) {
+        this.documentAffinityPort = documentAffinityPort;
     }
 }

@@ -26,48 +26,28 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
 			<version>4.0.0</version>
 		</dependency>
 
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 
-		<!-- Updated JUnit 5 (Jupiter) API -->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.10.2</version>  <!-- Updated version -->
-			<scope>test</scope>
-		</dependency>
-		<!-- Updated JUnit 5 (Jupiter) Engine -->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.10.2</version>  <!-- Updated version -->
-			<scope>test</scope>
-		</dependency>
-		<!-- Mockito Core -->
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
-			<version>4.0.0</version>
+			<version>3.4.0</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- Mockito Integration for JUnit 5 -->
+
 		<dependency>
 			<groupId>org.mockito</groupId>
-			<artifactId>mockito-junit-jupiter</artifactId>
-			<version>4.0.0</version>
+			<artifactId>mockito-inline</artifactId>
+			<version>3.4.0</version>
 			<scope>test</scope>
 		</dependency>
 

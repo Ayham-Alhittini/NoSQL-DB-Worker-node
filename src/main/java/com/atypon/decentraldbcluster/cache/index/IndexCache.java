@@ -1,7 +1,7 @@
 package com.atypon.decentraldbcluster.cache.index;
 
-import com.atypon.decentraldbcluster.cache.core.Cache;
-import com.atypon.decentraldbcluster.cache.core.LRUCache;
+import com.atypon.decentraldbcluster.cache.datastructure.Cache;
+import com.atypon.decentraldbcluster.cache.datastructure.LRUCache;
 import com.atypon.decentraldbcluster.index.Index;
 import org.springframework.stereotype.Component;
 

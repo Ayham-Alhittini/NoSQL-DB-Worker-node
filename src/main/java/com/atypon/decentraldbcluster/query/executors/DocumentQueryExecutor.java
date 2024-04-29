@@ -1,11 +1,12 @@
 package com.atypon.decentraldbcluster.query.executors;
 
-import com.atypon.decentraldbcluster.document.entity.Document;
+import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.lock.OptimisticLocking;
 import com.atypon.decentraldbcluster.query.actions.DocumentAction;
 import com.atypon.decentraldbcluster.query.handlers.document.DocumentHandler;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
-import com.atypon.decentraldbcluster.document.services.DocumentQueryService;
+import com.atypon.decentraldbcluster.storage.managers.DocumentStorageManager;
+import com.atypon.decentraldbcluster.utility.PathConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,14 +14,15 @@ import org.springframework.stereotype.Component;
 public class DocumentQueryExecutor implements Executable<DocumentQuery> {
     private final DocumentHandler documentHandler;
     private final OptimisticLocking optimisticLocking;
-    private final DocumentQueryService documentReaderService;
+    private final DocumentStorageManager documentStorageManager;
+
 
     @Autowired
     public DocumentQueryExecutor(DocumentHandler documentHandler, OptimisticLocking optimisticLocking,
-                                 DocumentQueryService documentReaderService) {
+                                 DocumentStorageManager documentStorageManager) {
         this.documentHandler = documentHandler;
         this.optimisticLocking = optimisticLocking;
-        this.documentReaderService = documentReaderService;
+        this.documentStorageManager = documentStorageManager;
     }
 
     @Override
@@ -40,12 +42,14 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
         if (action == DocumentAction.SELECT || action == DocumentAction.ADD)
             return exec(query);
 
-        Document document = documentReaderService.findDocumentById(query);
+        String documentPath = PathConstructor.constructDocumentPath(query);
+        Document document = documentStorageManager.loadDocument(documentPath);
+
         if (optimisticLocking.attemptVersionUpdate(document, document.getVersion())) {
             try {
                 return exec(query);
             } finally {
-                optimisticLocking.clearDocumentVersion(document.getId());
+                optimisticLocking.releaseDocumentVersion(document.getId());
             }
         }
         throw new IllegalArgumentException("Document version conflict");

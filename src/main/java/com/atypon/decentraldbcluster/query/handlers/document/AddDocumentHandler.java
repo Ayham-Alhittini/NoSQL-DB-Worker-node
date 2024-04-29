@@ -1,55 +1,78 @@
 package com.atypon.decentraldbcluster.query.handlers.document;
 
-import com.atypon.decentraldbcluster.communication.affinity.AffinityLoadBalancer;
-import com.atypon.decentraldbcluster.document.entity.Document;
-import com.atypon.decentraldbcluster.document.services.DocumentIndexService;
-import com.atypon.decentraldbcluster.persistence.DocumentPersistenceManager;
+import com.atypon.decentraldbcluster.communication.affinity.balancer.AffinityLoadBalancer;
+import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.storage.managers.DocumentStorageManager;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
+import com.atypon.decentraldbcluster.storage.managers.IndexStorageManager;
+import com.atypon.decentraldbcluster.utility.IndexUtil;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
-import com.atypon.decentraldbcluster.validation.DocumentValidator;
+import com.atypon.decentraldbcluster.schema.SchemaValidator;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AddDocumentHandler {
 
-    private final DocumentValidator documentValidator;
-    private final DocumentIndexService documentIndexService;
+    private final SchemaValidator schemaValidator;
     private final AffinityLoadBalancer affinityLoadBalancer;
-    private final DocumentPersistenceManager documentPersistenceManager;
+    private final DocumentStorageManager documentStorageManager;
+    private final IndexStorageManager indexStorageManager;
 
-    public AddDocumentHandler(DocumentValidator documentValidator, DocumentIndexService documentIndexService,
-                              AffinityLoadBalancer affinityLoadBalancer, DocumentPersistenceManager documentPersistenceManager) {
-        this.documentValidator = documentValidator;
-        this.documentIndexService = documentIndexService;
+    public AddDocumentHandler(SchemaValidator schemaValidator, AffinityLoadBalancer affinityLoadBalancer,
+                              DocumentStorageManager documentPersistenceManager, IndexStorageManager indexStorageManager) {
+        this.schemaValidator = schemaValidator;
         this.affinityLoadBalancer = affinityLoadBalancer;
-        this.documentPersistenceManager = documentPersistenceManager;
+        this.documentStorageManager = documentPersistenceManager;
+        this.indexStorageManager = indexStorageManager;
     }
 
     public JsonNode handle(DocumentQuery query) throws Exception {
 
         String collectionPath = PathConstructor.constructCollectionPath(query);
-        documentValidator.validateDocument(query.getContent(), collectionPath, true);
+        schemaValidator.validateDocument(query.getContent(), collectionPath, true);
 
         Document document = createDocumentWithOptionalAssignedId(query);
+
         // Modify query to broadcast with same id
         query.setDocumentId(document.getId());
+        query.setDocumentAffinityPort(document.getNodeAffinityPort());
 
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, document.getId());
-        documentPersistenceManager.saveDocument(documentPath, document);
-        documentIndexService.insertToAllDocumentIndexes(document, documentPath);
+        documentStorageManager.saveDocument(documentPath, document);
+        insertToAllDocumentIndexes(document, documentPath);
 
         return document.getContent();
     }
 
 
-    // when we add a document we broadcast it, and to guaranty it have same ID we send
-    // the document ID in the query
     private Document createDocumentWithOptionalAssignedId(DocumentQuery query) {
         if (query.isBroadcastQuery()) {
-            return new Document(query.getContent(), query.getDocumentId());
+            return new Document(query.getContent(), query.getDocumentId(), query.getDocumentAffinityPort());
         } else {
-            return new Document(query.getContent(), affinityLoadBalancer.getNextNodeNumber());
+            int nextAffinityNodeNumber = affinityLoadBalancer.getNextAffinityNodeNumber();
+            if (isCustomizedId(query)) {
+                return new Document(query.getContent(), query.getDocumentId(), 8080 + nextAffinityNodeNumber);
+            } else {
+                return new Document(query.getContent(), 8080 + nextAffinityNodeNumber);
+            }
+        }
+    }
+
+    private boolean isCustomizedId(DocumentQuery query) {
+        return query.getDocumentId() != null;
+    }
+
+    public void insertToAllDocumentIndexes(Document document, String pointer) throws Exception {
+        String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(pointer);
+        List<String> indexedFields = IndexUtil.getIndexedFields(document.getContent(), collectionPath);
+
+        for (String field : indexedFields) {
+            String indexPath = PathConstructor.constructIndexPath(collectionPath, field);
+            JsonNode key = document.getContent().get(field);
+            indexStorageManager.addToIndex(indexPath, key, pointer);
         }
     }
 }

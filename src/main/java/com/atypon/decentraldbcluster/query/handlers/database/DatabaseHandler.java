@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.query.handlers.database;
 
-import com.atypon.decentraldbcluster.disk.FileSystemService;
+import com.atypon.decentraldbcluster.storage.disk.FileSystemService;
 import com.atypon.decentraldbcluster.query.types.DatabaseQuery;
 import com.atypon.decentraldbcluster.utility.PathConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
