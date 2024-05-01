@@ -2,7 +2,7 @@ package com.atypon.decentraldbcluster.query.service;
 
 import com.atypon.decentraldbcluster.communication.affinity.dispatcher.DocumentAffinityDispatcher;
 import com.atypon.decentraldbcluster.communication.braodcast.BroadcastService;
-import com.atypon.decentraldbcluster.communication.braodcast.BroadcastType;
+import com.atypon.decentraldbcluster.communication.braodcast.QueryBroadcastType;
 import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.executors.DocumentQueryExecutor;
 import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
@@ -33,9 +33,9 @@ public class QueryService {
         this.documentStorageManager = documentStorageManager;
     }
 
-    public Object executeQueryAndBroadcast(Query query, BroadcastType type) throws Exception {
+    public Object executeQueryAndBroadcast(Query query, QueryBroadcastType type) throws Exception {
         var queryResult = queryExecutor.exec(query);
-        broadcastService.doBroadcastForWriteQuery(type, query);
+        broadcastService.doQueryBroadcastForWriteQuery(type, query);
         return queryResult;
     }
 
@@ -53,7 +53,7 @@ public class QueryService {
 
     private Object executeDocumentQueryWithBroadcast(DocumentQuery query) throws Exception {
         Object queryResult = documentQueryExecutor.execWithOptimisticLockingForModify(query);
-        broadcastService.doBroadcastForWriteQuery(BroadcastType.DOCUMENT, query);
+        broadcastService.doQueryBroadcastForWriteQuery(QueryBroadcastType.DOCUMENT, query);
         return queryResult;
     }
 }

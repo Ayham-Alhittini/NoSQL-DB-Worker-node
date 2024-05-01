@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class DocumentStorageManager {
     private final JsonUtil jsonUtil;
-    private final DocumentCache documentCache;
+    private DocumentCache documentCache;
     private final FileSystemService fileSystemService;
 
     public DocumentStorageManager(JsonUtil jsonUtil, FileSystemService fileSystemService, DocumentCache documentCache) {
@@ -51,6 +51,10 @@ public class DocumentStorageManager {
             documents.add( loadDocument(documentPath) );
         }
         return documents;
+    }
+
+    public void clearDocumentStorageCache() {
+        documentCache = new DocumentCache();
     }
 
 }

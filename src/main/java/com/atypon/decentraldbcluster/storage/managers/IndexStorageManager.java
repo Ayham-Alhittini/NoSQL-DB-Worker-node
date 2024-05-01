@@ -11,7 +11,7 @@ import java.io.IOException;
 
 @Service
 public class IndexStorageManager {
-    private final IndexCache indexCache;
+    private IndexCache indexCache;
     private final FileSystemService fileSystemService;
 
     public IndexStorageManager(FileSystemService fileSystemService, IndexCache indexCache) {
@@ -50,4 +50,7 @@ public class IndexStorageManager {
         saveIndex(indexPath, index);
     }
 
+    public void clearIndexStorageCache() {
+        indexCache = new IndexCache();
+    }
 }

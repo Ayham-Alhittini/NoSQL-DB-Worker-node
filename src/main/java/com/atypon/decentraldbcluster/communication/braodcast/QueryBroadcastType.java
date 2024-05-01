@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.communication.braodcast;
 
-public enum BroadcastType {
+public enum QueryBroadcastType {
     DATABASE,
     COLLECTION,
     INDEX,

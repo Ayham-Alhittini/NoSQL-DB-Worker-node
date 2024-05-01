@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.api.domain;
 
-import com.atypon.decentraldbcluster.communication.braodcast.BroadcastType;
+import com.atypon.decentraldbcluster.communication.braodcast.QueryBroadcastType;
 import com.atypon.decentraldbcluster.query.service.QueryService;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.query.builder.DatabaseQueryBuilder;
@@ -32,7 +32,7 @@ public class DatabaseController {
                 .createDatabase(database)
                 .build();
 
-        queryService.executeQueryAndBroadcast(query, BroadcastType.DATABASE);
+        queryService.executeQueryAndBroadcast(query, QueryBroadcastType.DATABASE);
     }
 
     @DeleteMapping("dropDB/{database}")
@@ -44,7 +44,7 @@ public class DatabaseController {
                 .dropDatabase(database)
                 .build();
 
-        queryService.executeQueryAndBroadcast(query, BroadcastType.DATABASE);
+        queryService.executeQueryAndBroadcast(query, QueryBroadcastType.DATABASE);
     }
 
     @GetMapping("/showDbs")
@@ -56,6 +56,6 @@ public class DatabaseController {
                 .showDbs()
                 .build();
 
-        return queryService.executeQueryAndBroadcast(query, BroadcastType.DATABASE);
+        return queryService.executeQueryAndBroadcast(query, QueryBroadcastType.DATABASE);
     }
 }

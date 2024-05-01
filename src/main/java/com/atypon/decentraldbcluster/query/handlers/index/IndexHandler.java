@@ -47,7 +47,7 @@ public class IndexHandler {
         String collectionPath = PathConstructor.constructCollectionPath(query);
         String indexesPath = Path.of(collectionPath, "indexes").toString();
         return fileSystemService.getDirectoryFilesPath(indexesPath)
-                .stream().map(path -> path.substring(path.indexOf("indexes\\") + "indexes\\".length()))
+                .stream().map(path -> path.substring(path.indexOf("indexes") + "indexes".length() + 1))
                 .toList();
     }
 

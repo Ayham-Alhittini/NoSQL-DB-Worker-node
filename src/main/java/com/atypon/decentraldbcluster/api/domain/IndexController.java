@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.api.domain;
 
-import com.atypon.decentraldbcluster.communication.braodcast.BroadcastType;
+import com.atypon.decentraldbcluster.communication.braodcast.QueryBroadcastType;
 import com.atypon.decentraldbcluster.query.service.QueryService;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.query.builder.IndexQueryBuilder;
@@ -35,7 +35,7 @@ public class IndexController {
                 .createIndex(field)
                 .build();
 
-        queryService.executeQueryAndBroadcast(query, BroadcastType.INDEX);
+        queryService.executeQueryAndBroadcast(query, QueryBroadcastType.INDEX);
     }
 
     @DeleteMapping("dropIndex/{database}/{collection}/{field}")
@@ -49,7 +49,7 @@ public class IndexController {
                 .dropIndex(field)
                 .build();
 
-        queryService.executeQueryAndBroadcast(query, BroadcastType.INDEX);
+        queryService.executeQueryAndBroadcast(query, QueryBroadcastType.INDEX);
     }
 
     @GetMapping("getIndexes/{database}/{collection}")
@@ -63,7 +63,7 @@ public class IndexController {
                 .showIndexes()
                 .build();
 
-        return queryService.executeQueryAndBroadcast(query, BroadcastType.INDEX);
+        return queryService.executeQueryAndBroadcast(query, QueryBroadcastType.INDEX);
     }
 
 }

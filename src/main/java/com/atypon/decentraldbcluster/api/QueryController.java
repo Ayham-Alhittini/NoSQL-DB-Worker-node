@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.api;
 
-import com.atypon.decentraldbcluster.communication.braodcast.BroadcastType;
+import com.atypon.decentraldbcluster.communication.braodcast.QueryBroadcastType;
 import com.atypon.decentraldbcluster.query.service.QueryService;
 import com.atypon.decentraldbcluster.query.types.CollectionQuery;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
@@ -24,17 +24,17 @@ public class QueryController {
 
     @PostMapping("databaseQueries")
     public Object databaseQueries(@RequestBody DocumentQuery query) throws Exception {
-        return queryService.executeQueryAndBroadcast(query, BroadcastType.DATABASE);
+        return queryService.executeQueryAndBroadcast(query, QueryBroadcastType.DATABASE);
     }
 
     @PostMapping("collectionQueries")
     public Object collectionQueries(@RequestBody CollectionQuery query) throws Exception {
-        return queryService.executeQueryAndBroadcast(query, BroadcastType.COLLECTION);
+        return queryService.executeQueryAndBroadcast(query, QueryBroadcastType.COLLECTION);
     }
 
     @PostMapping("indexQueries")
     public Object indexQueries(@RequestBody IndexQuery query) throws Exception {
-        return queryService.executeQueryAndBroadcast(query, BroadcastType.INDEX);
+        return queryService.executeQueryAndBroadcast(query, QueryBroadcastType.INDEX);
     }
 
     @PostMapping("documentQueries")

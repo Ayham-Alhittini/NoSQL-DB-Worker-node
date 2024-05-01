@@ -1,6 +1,6 @@
 package com.atypon.decentraldbcluster.api.domain;
 
-import com.atypon.decentraldbcluster.communication.braodcast.BroadcastType;
+import com.atypon.decentraldbcluster.communication.braodcast.QueryBroadcastType;
 import com.atypon.decentraldbcluster.query.service.QueryService;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.query.builder.CollectionQueryBuilder;
@@ -35,7 +35,7 @@ public class CollectionController {
                 .withSchema(schema)
                 .build();
 
-        queryService.executeQueryAndBroadcast(query, BroadcastType.COLLECTION);
+        queryService.executeQueryAndBroadcast(query, QueryBroadcastType.COLLECTION);
     }
 
     @DeleteMapping("dropCollection/{database}/{collection}")
@@ -48,7 +48,7 @@ public class CollectionController {
                 .dropCollection(collection)
                 .build();
 
-        queryService.executeQueryAndBroadcast(query, BroadcastType.COLLECTION);
+        queryService.executeQueryAndBroadcast(query, QueryBroadcastType.COLLECTION);
     }
 
     @GetMapping("getCollections/{database}")
@@ -61,7 +61,7 @@ public class CollectionController {
                 .showCollections()
                 .build();
 
-        return queryService.executeQueryAndBroadcast(query, BroadcastType.COLLECTION);
+        return queryService.executeQueryAndBroadcast(query, QueryBroadcastType.COLLECTION);
     }
 
     @GetMapping("getSchema/{database}/{collection}")
@@ -75,7 +75,7 @@ public class CollectionController {
                 .showSchema()
                 .build();
 
-        return queryService.executeQueryAndBroadcast(query, BroadcastType.COLLECTION);
+        return queryService.executeQueryAndBroadcast(query, QueryBroadcastType.COLLECTION);
     }
 
 }
