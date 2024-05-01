@@ -22,7 +22,6 @@ public class SchemaValidator {
         this.fileSystemService = fileSystemService;
     }
 
-    //Todo: i think we can make validate with required and validate with non required, rather than send boolean
     public void validateDocument(JsonNode data, String schemaCollection, boolean fieldsRequired) throws IOException {
         JsonNode schema = loadSchema(schemaCollection);
         if (schema == null) return;

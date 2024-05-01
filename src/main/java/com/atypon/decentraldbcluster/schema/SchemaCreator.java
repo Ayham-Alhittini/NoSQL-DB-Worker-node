@@ -16,8 +16,8 @@ public class SchemaCreator {
     public SchemaCreator(FileSystemService fileSystemService) {
         this.fileSystemService = fileSystemService;
     }
-    //Facade design pattern
 
+    //Facade design pattern
     public void validateAndCreateSchema(JsonNode schema, String collectionPath) throws IOException {
         validateSchemaWithPath(schema, "schema");
         createSchema(schema, collectionPath);

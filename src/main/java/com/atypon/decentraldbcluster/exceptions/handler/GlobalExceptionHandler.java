@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.exceptions.handler;
 
+import com.atypon.decentraldbcluster.exceptions.types.DocumentVersionConflictException;
 import com.atypon.decentraldbcluster.exceptions.types.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public final ResponseEntity<Object> handleResourceNotFoundException(ResourceNotFoundException ex) {
         logger.error("Resource not found: {}", ex.getMessage(), ex);
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    //Document conflict handling
+    @ExceptionHandler(DocumentVersionConflictException.class)
+    public final ResponseEntity<Object> handleDocumentVersionConflict(ResourceNotFoundException ex) {
+        logger.error("Conflict: {}", ex.getMessage(), ex);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
 }

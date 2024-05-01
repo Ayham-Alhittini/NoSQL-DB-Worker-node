@@ -1,5 +1,6 @@
 package com.atypon.decentraldbcluster.query.types;
 
+import com.atypon.decentraldbcluster.entity.Document;
 import com.atypon.decentraldbcluster.query.actions.DocumentAction;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -10,6 +11,7 @@ public class DocumentQuery extends Query {
     private JsonNode newContent;// for modify query [update, replace]
     private JsonNode condition;
     private DocumentAction documentAction;
+    private Document loadedDocument;
 
     //------------------------- Getter And Setter
 
@@ -64,5 +66,13 @@ public class DocumentQuery extends Query {
     @Override
     public boolean isWriteQuery() {
         return documentAction != DocumentAction.SELECT;
+    }
+
+    public Document getLoadedDocument() {
+        return loadedDocument;
+    }
+
+    public void setLoadedDocument(Document loadedDocument) {
+        this.loadedDocument = loadedDocument;
     }
 }

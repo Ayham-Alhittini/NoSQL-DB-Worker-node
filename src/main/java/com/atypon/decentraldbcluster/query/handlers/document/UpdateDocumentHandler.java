@@ -23,9 +23,9 @@ public class UpdateDocumentHandler {
 
     @Autowired
     public UpdateDocumentHandler(SchemaValidator schemaValidator,
-                                 DocumentStorageManager documentPersistenceManager, IndexStorageManager indexStorageManager) {
+                                 DocumentStorageManager documentStorageManager, IndexStorageManager indexStorageManager) {
         this.schemaValidator = schemaValidator;
-        this.documentStorageManager = documentPersistenceManager;
+        this.documentStorageManager = documentStorageManager;
         this.indexStorageManager = indexStorageManager;
     }
 
@@ -35,9 +35,8 @@ public class UpdateDocumentHandler {
 
         schemaValidator.validateDocument(query.getNewContent(), collectionPath, false);
 
-
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, query.getDocumentId());
-        Document document = documentStorageManager.loadDocument(documentPath);
+        Document document = query.getLoadedDocument();
 
         // Need to pass the old document, so updateIndexes track changes
         updateDocumentIndexes(document, query.getNewContent(), collectionPath);
@@ -45,18 +44,6 @@ public class UpdateDocumentHandler {
         documentStorageManager.saveDocument(documentPath, document);
 
         return document.getContent();
-    }
-
-    private void updateDocument(Document document, JsonNode newContent) {
-        JsonNode updatedDocumentData = integrateUpdate(document.getContent(), newContent);
-        document.setContent(updatedDocumentData);
-        document.incrementVersion();
-    }
-
-    private JsonNode integrateUpdate(JsonNode oldDocument, JsonNode requestBody) {
-        ObjectNode newDocument = (ObjectNode) oldDocument;
-        requestBody.fields().forEachRemaining(field -> newDocument.set(field.getKey(), field.getValue()));
-        return newDocument;
     }
 
     private void updateDocumentIndexes(Document document, JsonNode requestBody, String collectionPath) throws Exception {
@@ -75,4 +62,17 @@ public class UpdateDocumentHandler {
             }
         }
     }
+
+    private void updateDocument(Document document, JsonNode newContent) {
+        JsonNode updatedDocumentData = integrateUpdate(document.getContent(), newContent);
+        document.setContent(updatedDocumentData);
+        document.incrementVersion();
+    }
+
+    private JsonNode integrateUpdate(JsonNode oldDocument, JsonNode requestBody) {
+        ObjectNode newDocument = (ObjectNode) oldDocument;
+        requestBody.fields().forEachRemaining(field -> newDocument.set(field.getKey(), field.getValue()));
+        return newDocument;
+    }
+
 }

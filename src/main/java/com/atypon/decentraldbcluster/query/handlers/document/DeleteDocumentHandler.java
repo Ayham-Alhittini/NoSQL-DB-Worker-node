@@ -26,12 +26,11 @@ public class DeleteDocumentHandler {
         String collectionPath = PathConstructor.constructCollectionPath(query);
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, query.getDocumentId());
 
-        deleteDocumentFromIndexes(documentPath);
+        deleteDocumentFromIndexes(documentPath, query.getLoadedDocument());
         documentStorageManager.removeDocument(documentPath);
     }
 
-    public void deleteDocumentFromIndexes(String documentPointer) throws Exception {
-        Document document = documentStorageManager.loadDocument(documentPointer);
+    public void deleteDocumentFromIndexes(String documentPointer, Document document) throws Exception {
         String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(documentPointer);
         List<String> indexedFields = IndexUtil.getIndexedFields(document.getContent(), collectionPath);
 

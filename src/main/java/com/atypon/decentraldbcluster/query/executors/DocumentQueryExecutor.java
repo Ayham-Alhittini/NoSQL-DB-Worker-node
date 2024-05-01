@@ -1,12 +1,11 @@
 package com.atypon.decentraldbcluster.query.executors;
 
 import com.atypon.decentraldbcluster.entity.Document;
+import com.atypon.decentraldbcluster.exceptions.types.DocumentVersionConflictException;
 import com.atypon.decentraldbcluster.lock.OptimisticLocking;
 import com.atypon.decentraldbcluster.query.actions.DocumentAction;
 import com.atypon.decentraldbcluster.query.handlers.document.DocumentHandler;
 import com.atypon.decentraldbcluster.query.types.DocumentQuery;
-import com.atypon.decentraldbcluster.storage.managers.DocumentStorageManager;
-import com.atypon.decentraldbcluster.utility.PathConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,15 +13,12 @@ import org.springframework.stereotype.Component;
 public class DocumentQueryExecutor implements Executable<DocumentQuery> {
     private final DocumentHandler documentHandler;
     private final OptimisticLocking optimisticLocking;
-    private final DocumentStorageManager documentStorageManager;
 
 
     @Autowired
-    public DocumentQueryExecutor(DocumentHandler documentHandler, OptimisticLocking optimisticLocking,
-                                 DocumentStorageManager documentStorageManager) {
+    public DocumentQueryExecutor(DocumentHandler documentHandler, OptimisticLocking optimisticLocking) {
         this.documentHandler = documentHandler;
         this.optimisticLocking = optimisticLocking;
-        this.documentStorageManager = documentStorageManager;
     }
 
     @Override
@@ -42,8 +38,7 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
         if (action == DocumentAction.SELECT || action == DocumentAction.ADD)
             return exec(query);
 
-        String documentPath = PathConstructor.constructDocumentPath(query);
-        Document document = documentStorageManager.loadDocument(documentPath);
+        Document document = query.getLoadedDocument();
 
         if (optimisticLocking.attemptVersionUpdate(document, document.getVersion())) {
             try {
@@ -52,6 +47,6 @@ public class DocumentQueryExecutor implements Executable<DocumentQuery> {
                 optimisticLocking.releaseDocumentVersion(document.getId());
             }
         }
-        throw new IllegalArgumentException("Document version conflict");
+        throw new DocumentVersionConflictException();
     }
 }

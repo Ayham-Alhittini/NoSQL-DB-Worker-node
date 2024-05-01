@@ -32,7 +32,7 @@ public class ReplaceDocumentHandler {
         schemaValidator.validateDocument(query.getNewContent(), collectionPath, true);
 
         String documentPath = PathConstructor.constructDocumentPath(collectionPath, query.getDocumentId());
-        deleteDocumentHandler.deleteDocumentFromIndexes(documentPath);
+        deleteDocumentHandler.deleteDocumentFromIndexes(documentPath, query.getLoadedDocument());
 
         Document modifedDocument = getModifedDocument(query);
         addDocumentHandler.insertToAllDocumentIndexes(modifedDocument, documentPath);
@@ -43,9 +43,8 @@ public class ReplaceDocumentHandler {
 
 
 
-    private Document getModifedDocument(DocumentQuery query) throws Exception {
-        String documentPath = PathConstructor.constructDocumentPath(query);
-        Document document = documentStorageManager.loadDocument(documentPath);
+    private Document getModifedDocument(DocumentQuery query) {
+        Document document = query.getLoadedDocument();
         document.setContent( document.appendIdToContent(query.getNewContent(), document.getId()) );
         document.incrementVersion();
         return document;

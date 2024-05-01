@@ -47,24 +47,6 @@ public class AddDocumentHandler {
         return document.getContent();
     }
 
-
-    private Document createDocumentWithOptionalAssignedId(DocumentQuery query) {
-        if (query.isBroadcastQuery()) {
-            return new Document(query.getContent(), query.getDocumentId(), query.getDocumentAffinityPort());
-        } else {
-            int nextAffinityNodeNumber = affinityLoadBalancer.getNextAffinityNodeNumber();
-            if (isCustomizedId(query)) {
-                return new Document(query.getContent(), query.getDocumentId(), 8080 + nextAffinityNodeNumber);
-            } else {
-                return new Document(query.getContent(), 8080 + nextAffinityNodeNumber);
-            }
-        }
-    }
-
-    private boolean isCustomizedId(DocumentQuery query) {
-        return query.getDocumentId() != null;
-    }
-
     public void insertToAllDocumentIndexes(Document document, String pointer) throws Exception {
         String collectionPath = PathConstructor.extractCollectionPathFromDocumentPath(pointer);
         List<String> indexedFields = IndexUtil.getIndexedFields(document.getContent(), collectionPath);
@@ -74,5 +56,37 @@ public class AddDocumentHandler {
             JsonNode key = document.getContent().get(field);
             indexStorageManager.addToIndex(indexPath, key, pointer);
         }
+    }
+
+
+    private Document createDocumentWithOptionalAssignedId(DocumentQuery query) {
+        if (query.isBroadcastQuery()) {
+            return createBroadcastDocument(query);
+        } else {
+            return createStandardDocument(query);
+        }
+    }
+
+    private Document createBroadcastDocument(DocumentQuery query) {
+        return new Document(query.getContent(), query.getDocumentId(), query.getDocumentAffinityPort());
+    }
+
+    private Document createStandardDocument(DocumentQuery query) {
+        int affinityNodeOffset = affinityLoadBalancer.getNextAffinityNodeNumber();
+        int port = calculatePort(affinityNodeOffset);
+
+        if (hasCustomDocumentId(query)) {
+            return new Document(query.getContent(), query.getDocumentId(), port);
+        } else {
+            return new Document(query.getContent(), port);
+        }
+    }
+
+    private boolean hasCustomDocumentId(DocumentQuery query) {
+        return query.getDocumentId() != null;
+    }
+
+    private int calculatePort(int affinityNodeOffset) {
+        return 8080 + affinityNodeOffset;
     }
 }
