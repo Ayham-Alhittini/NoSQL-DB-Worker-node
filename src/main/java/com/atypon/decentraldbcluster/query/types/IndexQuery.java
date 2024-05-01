@@ -22,4 +22,9 @@ public class IndexQuery extends Query {
     public void setField(String field) {
         this.field = field;
     }
+
+    @Override
+    public boolean isWriteQuery() {
+        return indexAction != IndexAction.SHOW_INDEXES;
+    }
 }

@@ -20,7 +20,8 @@ public class CollectionQueryExecutor implements Executable<CollectionQuery> {
         return switch (query.getCollectionAction()) {
             case CREATE -> collectionHandler.handleCreateCollection(query);
             case DROP -> collectionHandler.handleDropCollection(query);
-            case SHOW -> collectionHandler.handleShowCollections(query);
+            case SHOW_COLLECTIONS -> collectionHandler.handleShowCollections(query);
+            case SHOW_SCHEMA -> collectionHandler.handleShowSchema(query);
         };
     }
 }

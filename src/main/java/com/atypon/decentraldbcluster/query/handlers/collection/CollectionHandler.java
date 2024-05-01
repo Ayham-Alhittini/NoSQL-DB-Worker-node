@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -34,6 +35,15 @@ public class CollectionHandler {
         String rootDirectory = PathConstructor.getRootDirectory();
         String databasePath = Paths.get(rootDirectory, query.getOriginator(), query.getDatabase()).toString();
         return fileSystemService.getAllDirectories(databasePath);
+    }
+
+    public String handleShowSchema(CollectionQuery query) {
+        String collectionPath = PathConstructor.constructCollectionPath(query);
+        String schemaPath = Path.of(collectionPath, "schema.json").toString();
+
+        if (fileSystemService.isFileExists(schemaPath))
+            return fileSystemService.loadFileContent(collectionPath + "/schema.json");
+        return null;
     }
 
 

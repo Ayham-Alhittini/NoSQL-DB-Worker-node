@@ -4,13 +4,10 @@ import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.query.builder.DocumentQueryBuilder;
 import com.atypon.decentraldbcluster.security.services.JwtService;
-import com.atypon.decentraldbcluster.utility.ListCaster;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/search")
@@ -27,10 +24,9 @@ public class SearchController {
     }
 
     @GetMapping("byID/{database}/{collection}/{documentId}")
-    public JsonNode findById(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
+    public Object findById(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @PathVariable String documentId) throws Exception {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
-
         Query query = builder
                 .withOriginator( jwtService.getUserId(request) )
                 .withDatabase(database)
@@ -39,15 +35,14 @@ public class SearchController {
                 .withId(documentId)
                 .build();
 
-        return queryExecutor.exec(query, JsonNode.class);
+        return queryExecutor.exec(query);
     }
 
 
-    @GetMapping("byFilter/{database}/{collection}")
-    public List<JsonNode> find(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode filter) throws Exception {
+    @PostMapping("byFilter/{database}/{collection}")
+    public Object find(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody JsonNode filter) throws Exception {
 
         DocumentQueryBuilder builder = new DocumentQueryBuilder();
-
         Query query = builder
                 .withOriginator( jwtService.getUserId(request) )
                 .withDatabase(database)
@@ -56,8 +51,7 @@ public class SearchController {
                 .withCondition(filter)
                 .build();
 
-        List<?> rawList = queryExecutor.exec(query, List.class);
-        return ListCaster.castList(rawList, JsonNode.class);
+        return queryExecutor.exec(query);
     }
 
 }

@@ -20,7 +20,10 @@ public class BroadcastService {
         this.nodeAuthorizationSecretEncryption = nodeAuthorizationSecretEncryption;
     }
 
-    public void doBroadcast(BroadcastType broadcastType, Query query) {
+    public void doBroadcastForWriteQuery(BroadcastType broadcastType, Query query) {
+
+        if (!query.isWriteQuery())return;
+
         String endpoint = broadcastType.toString().toLowerCase();
         query.setBroadcastQuery(true);
 

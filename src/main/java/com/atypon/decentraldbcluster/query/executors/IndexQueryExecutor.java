@@ -19,6 +19,7 @@ public class IndexQueryExecutor implements Executable<IndexQuery> {
         return switch (query.getIndexAction()) {
             case CREATE -> indexHandler.handleCreateIndex(query);
             case DROP -> indexHandler.handleDropIndex(query);
+            case SHOW_INDEXES -> indexHandler.handleShowIndexes(query);
         };
     }
 }

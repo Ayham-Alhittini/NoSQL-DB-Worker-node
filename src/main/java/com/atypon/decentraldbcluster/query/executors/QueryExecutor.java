@@ -26,14 +26,6 @@ public class QueryExecutor implements Executable<Query> {
         this.collectionQueryExecutor = collectionQueryExecutor;
     }
 
-    public <R> R exec(Query query, Class<R> returnType) throws Exception {
-        Object result = exec(query);
-
-        if (returnType.isInstance(result))
-            return returnType.cast(result);
-        throw new ClassCastException("The result cannot be cast to " + returnType.getName());
-    }
-
     // Factory design pattern
     @Override
     public Object exec(Query query) throws Exception {

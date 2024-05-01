@@ -60,4 +60,9 @@ public class DocumentQuery extends Query {
     public void setDocumentAffinityPort(int documentAffinityPort) {
         this.documentAffinityPort = documentAffinityPort;
     }
+
+    @Override
+    public boolean isWriteQuery() {
+        return documentAction != DocumentAction.SELECT;
+    }
 }

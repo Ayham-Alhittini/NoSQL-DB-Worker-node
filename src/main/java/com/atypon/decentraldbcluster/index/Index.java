@@ -51,8 +51,4 @@ public class Index implements Serializable {
         }
         return new ConcurrentSkipListSet<>();
     }
-    //Todo: consider use it if it reduce work
-    public boolean containsKey(JsonNode jsonNode) {
-        return indexMap.containsKey( new IndexKey(jsonNode) );
-    }
 }

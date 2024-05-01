@@ -83,6 +83,7 @@ public class FileSystemService {
         return filenames;
     }
 
+
     //------------------------- Concurrent methods need to locked
 
     public void deleteFile(String filePath) throws IOException {
@@ -98,6 +99,10 @@ public class FileSystemService {
             resourcesLock.releaseWriteResource(filePath);
         }
 
+    }
+
+    public boolean isFileExists(String filePath) {
+        return Files.isRegularFile(Path.of(filePath));
     }
 
     public String loadFileContent(String filePath) {

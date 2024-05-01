@@ -22,4 +22,9 @@ public class CollectionQuery extends Query {
     public void setSchema(JsonNode schema) {
         this.schema = schema;
     }
+
+    @Override
+    public boolean isWriteQuery() {
+        return collectionAction == CollectionAction.CREATE || collectionAction == CollectionAction.DROP;
+    }
 }

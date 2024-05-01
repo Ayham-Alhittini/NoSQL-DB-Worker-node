@@ -12,4 +12,9 @@ public class DatabaseQuery extends Query {
     public void setDatabaseAction(DatabaseAction databaseAction) {
         this.databaseAction = databaseAction;
     }
+
+    @Override
+    public boolean isWriteQuery() {
+        return databaseAction != DatabaseAction.SHOW;
+    }
 }

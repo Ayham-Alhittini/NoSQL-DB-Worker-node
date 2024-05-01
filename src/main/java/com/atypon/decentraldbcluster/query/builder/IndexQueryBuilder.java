@@ -18,6 +18,11 @@ public class IndexQueryBuilder implements QueryBuilder {
         return this;
     }
 
+    public IndexQueryBuilder showIndexes() {
+        query.setIndexAction(IndexAction.SHOW_INDEXES);
+        return this;
+    }
+
     @Override
     public IndexQueryBuilder withOriginator(String originator) {
         query.setOriginator(originator);

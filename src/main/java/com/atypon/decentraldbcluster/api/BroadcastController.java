@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/internal/api/broadcast")
-@CrossOrigin("*")
 public class BroadcastController {
 
     private final QueryExecutor queryExecutor;

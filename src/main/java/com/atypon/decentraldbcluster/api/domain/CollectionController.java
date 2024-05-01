@@ -1,18 +1,14 @@
 package com.atypon.decentraldbcluster.api.domain;
 
 import com.atypon.decentraldbcluster.communication.braodcast.BroadcastType;
-import com.atypon.decentraldbcluster.query.executors.QueryExecutor;
+import com.atypon.decentraldbcluster.query.service.QueryService;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.query.builder.CollectionQueryBuilder;
 import com.atypon.decentraldbcluster.security.services.JwtService;
-import com.atypon.decentraldbcluster.communication.braodcast.BroadcastService;
-import com.atypon.decentraldbcluster.utility.ListCaster;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/collection")
@@ -20,21 +16,18 @@ import java.util.List;
 public class CollectionController {
 
     private final JwtService jwtService;
-    private final QueryExecutor queryExecutor;
-    private final BroadcastService broadcastService;
+    private final QueryService queryService;
 
     @Autowired
-    public CollectionController(JwtService jwtService, QueryExecutor queryExecutor, BroadcastService broadcastService) {
+    public CollectionController(JwtService jwtService, QueryService queryService) {
         this.jwtService = jwtService;
-        this.queryExecutor = queryExecutor;
-        this.broadcastService = broadcastService;
+        this.queryService = queryService;
     }
 
     @PostMapping("createCollection/{database}/{collection}")
     public void createCollection(HttpServletRequest request, @PathVariable String database, @PathVariable String collection, @RequestBody(required = false) JsonNode schema) throws Exception {
 
         CollectionQueryBuilder builder = new CollectionQueryBuilder();
-
         Query query = builder
                 .withOriginator(jwtService.getUserId(request))
                 .withDatabase(database)
@@ -42,37 +35,47 @@ public class CollectionController {
                 .withSchema(schema)
                 .build();
 
-        queryExecutor.exec(query);
-        broadcastService.doBroadcast(BroadcastType.COLLECTION, query);
+        queryService.executeQueryAndBroadcast(query, BroadcastType.COLLECTION);
     }
 
     @DeleteMapping("dropCollection/{database}/{collection}")
     public void deleteCollection(HttpServletRequest request, @PathVariable String database, @PathVariable String collection) throws Exception {
 
         CollectionQueryBuilder builder = new CollectionQueryBuilder();
-
         Query query = builder
                 .withOriginator(jwtService.getUserId(request))
                 .withDatabase(database)
                 .dropCollection(collection)
                 .build();
 
-        queryExecutor.exec(query);
-        broadcastService.doBroadcast(BroadcastType.COLLECTION, query);
+        queryService.executeQueryAndBroadcast(query, BroadcastType.COLLECTION);
     }
 
-    @GetMapping("showCollections/{database}")
-    public List<String> showCollections(HttpServletRequest request, @PathVariable String database) throws Exception {
+    @GetMapping("getCollections/{database}")
+    public Object showCollections(HttpServletRequest request, @PathVariable String database) throws Exception {
 
         CollectionQueryBuilder builder = new CollectionQueryBuilder();
-
         Query query = builder
                 .withOriginator(jwtService.getUserId(request))
                 .withDatabase(database)
                 .showCollections()
                 .build();
 
-        List<?> rawList = queryExecutor.exec(query, List.class);
-        return ListCaster.castList(rawList, String.class);
+        return queryService.executeQueryAndBroadcast(query, BroadcastType.COLLECTION);
     }
+
+    @GetMapping("getSchema/{database}/{collection}")
+    public Object getSchema(HttpServletRequest request, @PathVariable String database, @PathVariable String collection) throws Exception {
+
+        CollectionQueryBuilder builder = new CollectionQueryBuilder();
+        Query query = builder
+                .withOriginator(jwtService.getUserId(request))
+                .withDatabase(database)
+                .withCollection(collection)
+                .showSchema()
+                .build();
+
+        return queryService.executeQueryAndBroadcast(query, BroadcastType.COLLECTION);
+    }
+
 }

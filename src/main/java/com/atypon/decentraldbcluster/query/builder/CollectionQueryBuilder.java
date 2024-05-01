@@ -26,7 +26,12 @@ public class CollectionQueryBuilder implements QueryBuilder {
     }
 
     public CollectionQueryBuilder showCollections() {
-        query.setCollectionAction(CollectionAction.SHOW);
+        query.setCollectionAction(CollectionAction.SHOW_COLLECTIONS);
+        return this;
+    }
+
+    public CollectionQueryBuilder showSchema() {
+        query.setCollectionAction(CollectionAction.SHOW_SCHEMA);
         return this;
     }
 
@@ -44,7 +49,8 @@ public class CollectionQueryBuilder implements QueryBuilder {
 
     @Override
     public CollectionQueryBuilder withCollection(String collection) {
-        throw new UnsupportedOperationException("Use add, remove collection for collection query");
+        query.setCollection(collection);
+        return this;
     }
 
     @Override

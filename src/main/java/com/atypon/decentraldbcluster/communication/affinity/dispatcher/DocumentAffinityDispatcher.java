@@ -30,6 +30,7 @@ public class DocumentAffinityDispatcher {
         return documentAffinityPort != currentPort;
     }
 
+
     public Object dispatchToAffinity(HttpServletRequest request, DocumentQuery query, int affinityPort) {
         String affinityUrl = NodeCommunicationConfiguration.getNodeAddress(affinityPort) + "/api/query/documentQueries";
 
@@ -42,10 +43,12 @@ public class DocumentAffinityDispatcher {
         return restTemplate.exchange( affinityUrl , HttpMethod.POST, requestEntity, Object.class);
     }
 
-    public int extractNodePortFromDocumentId(DocumentQuery query) throws Exception {
+
+    public int extractNodePortFromQuery(DocumentQuery query) throws Exception {
         String documentPath = PathConstructor.constructDocumentPath(query);
         return documentStorageManager.loadDocument(documentPath).getNodeAffinityPort();
     }
+
 
     private boolean isWriteQuery(DocumentQuery query) {
         DocumentAction action = query.getDocumentAction();

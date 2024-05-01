@@ -38,4 +38,5 @@ public abstract class Query {
     public void setBroadcastQuery(boolean broadcastQuery) {
         this.broadcastQuery = broadcastQuery;
     }
+    public abstract boolean isWriteQuery();
 }
