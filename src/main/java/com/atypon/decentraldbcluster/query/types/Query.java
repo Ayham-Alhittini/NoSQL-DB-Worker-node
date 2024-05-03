@@ -3,7 +3,7 @@ package com.atypon.decentraldbcluster.query.types;
 //Implementation for each query type at the query handlers
 public abstract class Query {
     private String originator;
-    private String database;
+    private String databaseName;
     private String collection;
     private boolean broadcastQuery;
 
@@ -15,12 +15,12 @@ public abstract class Query {
         this.originator = originator;
     }
 
-    public String getDatabase() {
-        return database;
+    public String getDatabaseName() {
+        return databaseName;
     }
 
-    public void setDatabase(String database) {
-        this.database = database;
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
     }
 
     public String getCollection() {

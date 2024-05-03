@@ -43,7 +43,7 @@ public class CollectionQueryBuilder implements QueryBuilder {
 
     @Override
     public CollectionQueryBuilder withDatabase(String database) {
-        query.setDatabase(database);
+        query.setDatabaseName(database);
         return this;
     }
 

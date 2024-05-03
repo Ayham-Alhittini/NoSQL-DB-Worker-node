@@ -29,7 +29,7 @@ public class IndexHandler {
     }
 
     public Void handleCreateIndex(IndexQuery query) throws Exception {
-        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
+        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabaseName(), query.getCollection());
         createIndex(collectionPath, query.getField());
         return null;
     }

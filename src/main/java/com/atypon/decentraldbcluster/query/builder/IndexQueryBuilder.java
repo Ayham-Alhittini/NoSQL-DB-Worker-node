@@ -31,7 +31,7 @@ public class IndexQueryBuilder implements QueryBuilder {
 
     @Override
     public IndexQueryBuilder withDatabase(String database) {
-        query.setDatabase(database);
+        query.setDatabaseName(database);
         return this;
     }
 

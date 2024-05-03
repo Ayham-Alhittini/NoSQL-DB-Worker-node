@@ -4,6 +4,7 @@ import com.atypon.decentraldbcluster.query.actions.DatabaseAction;
 
 public class DatabaseQuery extends Query {
     private DatabaseAction databaseAction;
+    private String databaseConnection;
 
     public DatabaseAction getDatabaseAction() {
         return databaseAction;
@@ -16,5 +17,13 @@ public class DatabaseQuery extends Query {
     @Override
     public boolean isWriteQuery() {
         return databaseAction != DatabaseAction.SHOW;
+    }
+
+    public String getDatabaseConnection() {
+        return databaseConnection;
+    }
+
+    public void setDatabaseConnection(String databaseConnection) {
+        this.databaseConnection = databaseConnection;
     }
 }

@@ -1,4 +1,4 @@
-package com.atypon.decentraldbcluster.security;
+package com.atypon.decentraldbcluster.security.filters;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;

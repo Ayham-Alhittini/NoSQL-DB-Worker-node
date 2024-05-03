@@ -1,6 +1,7 @@
 package com.atypon.decentraldbcluster.api.domain;
 
 import com.atypon.decentraldbcluster.communication.braodcast.QueryBroadcastType;
+import com.atypon.decentraldbcluster.entity.Database;
 import com.atypon.decentraldbcluster.query.service.QueryService;
 import com.atypon.decentraldbcluster.query.types.Query;
 import com.atypon.decentraldbcluster.query.builder.DatabaseQueryBuilder;
@@ -23,8 +24,8 @@ public class DatabaseController {
         this.queryService = queryService;
     }
 
-    @PostMapping("createDB/{database}")
-    public void createDatabase(HttpServletRequest request, @PathVariable String database) throws Exception {
+    @PostMapping("createDB")
+    public void createDatabase(HttpServletRequest request, @RequestBody Database database) throws Exception {
 
         DatabaseQueryBuilder builder = new DatabaseQueryBuilder();
         Query query = builder

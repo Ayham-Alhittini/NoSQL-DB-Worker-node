@@ -51,6 +51,8 @@ public class QueryService {
         return executeDocumentQueryWithBroadcast(query);
     }
 
+    // ----------------------------- Private method
+
     private Object executeDocumentQueryWithBroadcast(DocumentQuery query) throws Exception {
         Object queryResult = documentQueryExecutor.execWithOptimisticLockingForModify(query);
         broadcastService.doQueryBroadcastForWriteQuery(QueryBroadcastType.DOCUMENT, query);

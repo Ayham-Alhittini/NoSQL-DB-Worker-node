@@ -22,11 +22,6 @@ public class QueryController {
     }
 
 
-    @PostMapping("databaseQueries")
-    public Object databaseQueries(@RequestBody DocumentQuery query) throws Exception {
-        return queryService.executeQueryAndBroadcast(query, QueryBroadcastType.DATABASE);
-    }
-
     @PostMapping("collectionQueries")
     public Object collectionQueries(@RequestBody CollectionQuery query) throws Exception {
         return queryService.executeQueryAndBroadcast(query, QueryBroadcastType.COLLECTION);

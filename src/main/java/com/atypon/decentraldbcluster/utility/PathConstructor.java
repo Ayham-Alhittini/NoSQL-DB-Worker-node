@@ -16,7 +16,7 @@ public class PathConstructor {
         return Paths.get(getRootDirectory(), userDirectory, database, collection).toString();
     }
     public static String constructCollectionPath(Query query) {
-        return Paths.get(getRootDirectory(), query.getOriginator(), query.getDatabase(), query.getCollection()).toString();
+        return Paths.get(getRootDirectory(), query.getOriginator(), query.getDatabaseName(), query.getCollection()).toString();
     }
 
     public static String constructIndexPath(String collectionPath, String fieldName) {

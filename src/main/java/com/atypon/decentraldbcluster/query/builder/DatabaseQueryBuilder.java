@@ -1,20 +1,22 @@
 package com.atypon.decentraldbcluster.query.builder;
 
+import com.atypon.decentraldbcluster.entity.Database;
 import com.atypon.decentraldbcluster.query.actions.DatabaseAction;
 import com.atypon.decentraldbcluster.query.types.DatabaseQuery;
 
 public class DatabaseQueryBuilder implements QueryBuilder {
     private final DatabaseQuery query = new DatabaseQuery();
 
-    public DatabaseQueryBuilder createDatabase(String database) {
+    public DatabaseQueryBuilder createDatabase(Database database) {
         query.setDatabaseAction(DatabaseAction.CREATE);
-        query.setDatabase(database);
+        query.setDatabaseName(database.getDbName());
+        query.setDatabaseConnection(database.getApiKey());
         return this;
     }
 
     public DatabaseQueryBuilder dropDatabase(String database) {
         query.setDatabaseAction(DatabaseAction.DROP);
-        query.setDatabase(database);
+        query.setDatabaseName(database);
         return this;
     }
 

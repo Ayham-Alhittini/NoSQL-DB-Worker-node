@@ -25,7 +25,7 @@ public class CollectionHandler {
 
 
     public Void handleDropCollection(CollectionQuery query) throws IOException {
-        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
+        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabaseName(), query.getCollection());
         fileSystemService.deleteDirectory(collectionPath);
         return null;
     }
@@ -33,7 +33,7 @@ public class CollectionHandler {
 
     public List<String> handleShowCollections(CollectionQuery query) {
         String rootDirectory = PathConstructor.getRootDirectory();
-        String databasePath = Paths.get(rootDirectory, query.getOriginator(), query.getDatabase()).toString();
+        String databasePath = Paths.get(rootDirectory, query.getOriginator(), query.getDatabaseName()).toString();
         return fileSystemService.getAllDirectories(databasePath);
     }
 
@@ -49,7 +49,7 @@ public class CollectionHandler {
 
     public Void handleCreateCollection(CollectionQuery query) throws Exception {
 
-        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabase(), query.getCollection());
+        String collectionPath = PathConstructor.constructCollectionPath(query.getOriginator(), query.getDatabaseName(), query.getCollection());
 
         fileSystemService.createDirectory(Paths.get(collectionPath, "documents").toString() );
         fileSystemService.createDirectory( Paths.get(collectionPath, "indexes").toString() );

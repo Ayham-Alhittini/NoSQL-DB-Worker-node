@@ -58,7 +58,7 @@ public class DocumentQueryBuilder implements QueryBuilder {
 
     @Override
     public DocumentQueryBuilder withDatabase(String database) {
-        query.setDatabase(database);
+        query.setDatabaseName(database);
         return this;
     }
 

@@ -6,14 +6,14 @@ import java.util.List;
 public class NodeCommunicationConfiguration {
 
     //Production
-//    private static final String baseNodeAddress = "http://host.docker.internal:";
-//    private static int currentNodePort;
-//    private static List<Integer> otherNodesPort;
+    private static final String baseNodeAddress = "http://host.docker.internal:";
+    private static int currentNodePort;
+    private static List<Integer> otherNodesPort;
 
     //Development
-    private static final String baseNodeAddress = "http://localhost:";
-    private static int currentNodePort = 8081;
-    private static List<Integer> otherNodesPort = new ArrayList<>();
+//    private static final String baseNodeAddress = "http://localhost:";
+//    private static int currentNodePort = 8081;
+//    private static List<Integer> otherNodesPort = new ArrayList<>();
 //    private static List<Integer> otherNodesPort = List.of(8082);
 
     public static int getClusterNodeSize() {
